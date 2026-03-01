@@ -3,87 +3,118 @@
 title: 卷王小组技术研究
 description: 卷王小组的深度技术研究博客
 lang: zh-CN
+url: "https://wujiaming88.github.io/openclaw_daily_file"
+baseurl: "/openclaw_daily_file"
 
 # 主题配置
-theme:
-  name: minima
-  # 专业技术博客风格配置
-  params:
-    # 启用代码高亮
-    highlightjs: true
-    
-    # 代码块样式
-    code_block_max_lines: 100
-    
-    # 日期格式
-    date_format: "2006-01-02"
-    
-    # 显示阅读时间
-    show_reading_time: true
-    
-    # 显示更新日期
-    show_last_updated: true
-    
-    # 首页文章数量
-    index_posts_num: 10  # 首页显示最近10篇文章
-    
-    # 摘要长度
-    summary_length: 200
-    
-    # 分页
-    paginate: 10
-    
-    # 启用数学公式
-    mathjax: true
-    
-    # 启用Mermaid图表
-    mermaid: true
+theme: minima
 
-# 菜单配置
-menu:
-  - name: 首页
-    url: /
-    weight: 1
-  - name: 研究成果
-    url: /research/
-    weight: 2
-  - name: 关于
-    url: /about/
-    weight: 3
+# 插件配置
+plugins:
+  - jekyll-paginate
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
 
-# 社交媒体
-social:
-  - name: GitHub
-    url: https://github.com/wujiaming88/openclaw_daily_file
-    icon: github
-  - name: RSS
-    url: /atom.xml
-    icon: rss
+# 分页配置
+paginate: 10
+paginate_path: "/page/:num/"
 
-# 输出目录
-output:
-  dir: ./
-  archive:
-    path: archives/
-    slug: yearly
+# 日期格式
+date_format: "%Y-%m-%d"
+
+# 时间格式
+time_format: "%H:%M"
+
+# 摘要配置
+excerpt_separator: "<!--more-->"
+excerpt_length: 200
 
 # Markdown设置
-markdown:
-  extensions:
-    - .md
-  front_matter:
-    - title
-    - date
-    - tags
-    - category
-    - author
-    - summary
-    - draft
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    css_class: 'highlight'
+    line_numbers: false
+    span:
+      line_numbers: false
+    block:
+      line_numbers: false
+      start_line: 1
 
 # 默认值
 defaults:
-  - scope: .
-    path: ""
+  - scope:
+      path: ""
+      type: "posts"
     values:
-      layout: "single"
+      layout: "post"
       author: "卷王小组"
+      comments: true
+      show_reading_time: true
+      show_last_updated: true
+
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+
+# 集合配置
+collections:
+  research:
+    output: true
+    permalink: /research/:path/
+  ai_news:
+    output: true
+    permalink: /ai-news/:path/
+  news_broadcast:
+    output: true
+    permalink: /news-broadcast/:path/
+
+# 排除文件
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - .gitignore
+  - README.md
+
+# 包含文件
+include:
+  - _pages
+
+# Feed配置
+feed:
+  posts:
+    limit: 20
+  categories:
+    limit: 10
+
+# SEO配置
+seo:
+  title: 卷王小组技术研究
+  description: 卷王小组的深度技术研究博客，专注于AI、架构设计、技术趋势等领域
+  author:
+    name: 卷王小组
+    twitter: 
+    github: wujiaming88
+  social:
+    name: 卷王小组
+    links:
+      - https://github.com/wujiaming88/openclaw_daily_file
+  logo: /assets/logo.png
+  image: /assets/og-image.png
+
+# 前端matter配置
+frontmatter_defaults:
+  all:
+    values:
+      lang: zh-CN
+      encoding: utf-8
