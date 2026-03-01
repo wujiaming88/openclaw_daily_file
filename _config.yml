@@ -1,0 +1,89 @@
+---
+# 站点配置
+title: 卷王小组技术研究
+description: 卷王小组的深度技术研究博客
+lang: zh-CN
+
+# 主题配置
+theme:
+  name: minima
+  # 专业技术博客风格配置
+  params:
+    # 启用代码高亮
+    highlightjs: true
+    
+    # 代码块样式
+    code_block_max_lines: 100
+    
+    # 日期格式
+    date_format: "2006-01-02"
+    
+    # 显示阅读时间
+    show_reading_time: true
+    
+    # 显示更新日期
+    show_last_updated: true
+    
+    # 首页文章数量
+    index_posts_num: 10  # 首页显示最近10篇文章
+    
+    # 摘要长度
+    summary_length: 200
+    
+    # 分页
+    paginate: 10
+    
+    # 启用数学公式
+    mathjax: true
+    
+    # 启用Mermaid图表
+    mermaid: true
+
+# 菜单配置
+menu:
+  - name: 首页
+    url: /
+    weight: 1
+  - name: 研究成果
+    url: /research/
+    weight: 2
+  - name: 关于
+    url: /about/
+    weight: 3
+
+# 社交媒体
+social:
+  - name: GitHub
+    url: https://github.com/wujiaming88/openclaw_daily_file
+    icon: github
+  - name: RSS
+    url: /atom.xml
+    icon: rss
+
+# 输出目录
+output:
+  dir: ./
+  archive:
+    path: archives/
+    slug: yearly
+
+# Markdown设置
+markdown:
+  extensions:
+    - .md
+  front_matter:
+    - title
+    - date
+    - tags
+    - category
+    - author
+    - summary
+    - draft
+
+# 默认值
+defaults:
+  - scope: .
+    path: ""
+    values:
+      layout: "single"
+      author: "卷王小组"
