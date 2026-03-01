@@ -2,21 +2,21 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 // 配置BytePlus API
-const BYTEPLUS_API_KEY = 'df96708f-6ca1-4897-9bb2-468eb8773c80';
+const BYTEPLUS_API_KEY = process.env.BYTEPLUS_API_KEY;
 const BYTEPLUS_API_URL = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
 
 // 新闻源配置
 const NEWS_SOURCES = [
   { name: 'BBC科技', url: 'https://www.bbc.com/news/technology' },
-  { name: 'CNET', url: 'https://www.cnet.com/' },
   { name: 'TechCrunch', url: 'https://techcrunch.com/' },
   { name: 'The Verge', url: 'https://www.theverge.com/' },
   { name: 'Wired', url: 'https://www.wired.com/' },
-  { name: 'ZDNet', url: 'https://www.zdnet.com/' },
   { name: 'Ars Technica', url: 'https://arstechnica.com/' },
   { name: 'Engadget', url: 'https://www.engadget.com/' },
-  { name: 'PCMag', url: 'https://www.pcmag.com/' },
   { name: 'Tom\'s Hardware', url: 'https://www.tomshardware.com/' },
+  { name: 'Android Authority', url: 'https://www.androidauthority.com/' },
+  { name: '9to5Mac', url: 'https://9to5mac.com/' },
+  { name: 'MacRumors', url: 'https://www.macrumors.com/' },
 ];
 
 // 抓取新闻
@@ -81,12 +81,12 @@ ${item.articles.map(article => `- ${article.title}`).join('\n')}`).join('\n\n')}
 4. 使用中文撰写`;
 
     const response = await axios.post('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
-      model: 'byteplus-plan/ark-code-latest',
+      model: 'byteplus/seed-1-8-251228',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
     }, {
       headers: {
-        'Authorization': `Bearer df96708f-6ca1-4897-9bb2-468eb8773c80`,
+        'Authorization': `Bearer ${BYTEPLUS_API_KEY}`,
         'Content-Type': 'application/json'
       }
     });
@@ -141,8 +141,25 @@ async function main() {
   // 推送到远端仓库
   try {
     const { execSync } = require('child_process');
-    execSync('cd /root/.openclaw/workspace/multi-source-news-summary && git add *.txt && git commit -m "Update daily news summary" && git push', { stdio: 'ignore' });
-    console.log('摘要已推送到远端仓库');
+    // 检查是否存在git仓库
+    try {
+      execSync('cd /root/.openclaw/workspace/multi-source-news-summary && git rev-parse --is-inside-work-tree', { stdio: 'ignore' });
+    } catch (error) {
+      // 初始化git仓库
+      execSync('cd /root/.openclaw/workspace/multi-source-news-summary && git init && git add . && git commit -m "Initial commit"', { stdio: 'ignore' });
+    }
+    
+    // 添加文件并推送
+    execSync('cd /root/.openclaw/workspace/multi-source-news-summary && git add *.txt && git commit -m "Update daily news summary"', { stdio: 'ignore' });
+    console.log('摘要已保存到本地仓库');
+    
+    // 尝试推送到远端仓库（如果配置了的话）
+    try {
+      execSync('cd /root/.openclaw/workspace/multi-source-news-summary && git push', { stdio: 'ignore' });
+      console.log('摘要已推送到远端仓库');
+    } catch (error) {
+      console.log('远端仓库未配置，摘要已保存到本地仓库');
+    }
   } catch (error) {
     console.error('推送远端仓库失败:', error.message);
   }

@@ -5,7 +5,7 @@
 ## 功能特性
 
 - 📰 支持10个主流国际新闻源
-- 🤖 使用BytePlus byteplus-plan/ark-code-latest模型生成智能摘要
+- 🤖 使用BytePlus byteplus/seed-1-8-251228模型生成智能摘要
 - 📊 突出不同来源的观点差异
 - 💾 自动保存摘要到文件
 - 🔄 兼容系统环境变量，无需额外配置API密钥
