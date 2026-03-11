@@ -642,6 +642,296 @@ clawhub publish ./skills/my-skill --slug my-skill --name "My Skill" --version 1.
 
 ---
 
+## 附录一：Skill 调用控制手段
+
+OpenClaw 提供**多层控制手段**来精确管理 Skill 的调用：
+
+### A1.1 加载层控制（Skill 能不能被看到）
+
+**直接禁用**：
+```json5
+{
+  skills: {
+    entries: {
+      "risky-skill": { enabled: false }  // 彻底禁用，即使已安装
+    }
+  }
+}
+```
+
+**内置白名单**（只允许指定的内置 Skills，其他全部屏蔽）：
+```json5
+{
+  skills: {
+    allowBundled: ["weather", "github", "coding-agent"]
+  }
+}
+```
+
+**门控条件**（不满足条件自动跳过）：
+```yaml
+metadata: {
+  "openclaw": {
+    "requires": {
+      "bins": ["ffmpeg"],          # 缺二进制 → 不加载
+      "env": ["GEMINI_API_KEY"],   # 缺环境变量 → 不加载
+      "config": ["browser.enabled"] # 配置未启用 → 不加载
+    },
+    "os": ["darwin"]               # 非 macOS → 不加载
+  }
+}
+```
+
+### A1.2 可见性控制（模型/用户能不能调用）
+
+**禁止模型自主调用**（仅保留用户斜杠命令）：
+```yaml
+---
+name: dangerous-skill
+disable-model-invocation: true   # 模型看不到，不会自动选用
+user-invocable: true             # 但用户可以 /dangerous-skill 手动触发
+---
+```
+
+**禁止用户斜杠命令**（仅模型自动选择）：
+```yaml
+---
+name: internal-skill
+user-invocable: false            # 用户不能 /internal-skill
+disable-model-invocation: false  # 模型仍可自动选择
+---
+```
+
+**两个都禁 = 彻底隐身**：
+```yaml
+disable-model-invocation: true
+user-invocable: false
+# 这个 Skill 存在但谁也调不到（效果等同于 enabled: false）
+```
+
+### A1.3 调用方式控制
+
+**工具直接调度**（绕过模型判断）：
+```yaml
+---
+name: quick-status
+command-dispatch: tool       # 斜杠命令直接调度工具
+command-tool: session_status # 目标工具
+command-arg-mode: raw        # 原始参数转发
+---
+```
+用户输入 `/quick-status` → 直接调用 `session_status`，不经过 LLM。
+
+### A1.4 工具层控制（Skill 中用到的工具能不能执行）
+
+**全局工具 allow/deny**：
+```json5
+{
+  tools: {
+    deny: ["exec", "browser"]  // 所有 Skill 都无法让 Agent 执行命令或浏览器
+  }
+}
+```
+
+**按 Agent 工具限制**：
+```json5
+{
+  agents: {
+    list: [{
+      id: "restricted",
+      tools: {
+        allow: ["read", "web_search"],
+        deny: ["exec", "write", "edit"]
+      }
+    }]
+  }
+}
+```
+
+即使 Skill 指令写了"请用 exec 执行命令"，Agent 也调不到被 deny 的工具。
+
+**子 Agent 工具策略**：
+```json5
+{
+  tools: {
+    subagents: {
+      tools: { deny: ["browser", "gateway"] }
+    }
+  }
+}
+```
+
+### A1.5 凭证层控制
+
+**按 Skill 注入/不注入 API Key**：
+```json5
+{
+  skills: {
+    entries: {
+      "nano-banana-pro": {
+        enabled: true,
+        apiKey: "GEMINI_KEY"  // 只有这个 Skill 运行时注入
+      },
+      "another-skill": {
+        enabled: true
+        // 不给 apiKey → 门控检查失败 → 自动跳过
+      }
+    }
+  }
+}
+```
+
+### A1.6 控制手段速查表
+
+| 层级 | 手段 | 效果 |
+|------|------|------|
+| **加载层** | `enabled: false` | 彻底不加载 |
+| **加载层** | `allowBundled` | 内置白名单 |
+| **加载层** | `requires.*` 门控 | 条件不满足自动跳过 |
+| **可见性** | `disable-model-invocation` | 模型看不到 |
+| **可见性** | `user-invocable: false` | 用户不能斜杠调用 |
+| **调用方式** | `command-dispatch: tool` | 绕过模型直接调工具 |
+| **工具层** | `tools.deny` | Skill 指令中的工具被拦截 |
+| **凭证层** | 不配置 `apiKey`/`env` | 缺凭证被门控 |
+| **沙箱层** | `sandbox.mode: "all"` | Skill 在隔离容器中执行 |
+
+---
+
+## 附录二：Skill 全部配置项参考
+
+### A2.1 openclaw.json 中的 `skills` 配置
+
+```json5
+{
+  skills: {
+    // ═══════════════ 加载控制 ═══════════════
+    
+    // 内置 Skills 白名单（仅影响内置，不影响托管/工作区）
+    allowBundled: ["weather", "github", "coding-agent"],
+    
+    load: {
+      extraDirs: ["~/shared-skills"],    // 额外扫描目录（最低优先级）
+      watch: true,                        // 文件变更监视（默认: true）
+      watchDebounceMs: 250,               // 防抖时间 ms（默认: 250）
+    },
+    
+    // ═══════════════ 安装行为 ═══════════════
+    
+    install: {
+      preferBrew: true,                   // 优先 brew（默认: true）
+      nodeManager: "npm",                 // npm | pnpm | yarn | bun（默认: npm）
+    },
+    
+    // ═══════════════ 单 Skill 配置 ═══════════════
+    
+    entries: {
+      "<skillKey>": {
+        enabled: true,                    // 启用/禁用（默认: true）
+        apiKey: "KEY_HERE",               // 主 API Key（明文或 SecretRef）
+        env: {                            // 环境变量注入（仅未设置时注入）
+          MY_VAR: "value"
+        },
+        config: {                         // 自定义配置容器
+          endpoint: "https://...",
+          model: "xxx"
+        }
+      }
+    }
+  }
+}
+```
+
+### A2.2 SKILL.md Frontmatter 全部字段
+
+```yaml
+---
+# ═══════════════ 必填 ═══════════════
+name: my-skill                  # Skill 标识名
+description: "Do X when Y."    # 描述（注入系统提示词）
+
+# ═══════════════ 显示 ═══════════════
+homepage: https://example.com   # 外部文档 URL
+
+# ═══════════════ 调用控制 ═══════════════
+user-invocable: true            # 作为用户斜杠命令（默认: true）
+disable-model-invocation: false # 从模型提示词排除（默认: false）
+command-dispatch: tool          # "tool" = 斜杠命令直接调工具
+command-tool: session_status    # 直接调度的目标工具
+command-arg-mode: raw           # 参数模式（默认: raw）
+
+# ═══════════════ 门控和元数据 ═══════════════
+# 注意：metadata 必须是单行 JSON
+metadata: {
+  "openclaw": {
+    "always": true,                           # 跳过所有门控
+    "emoji": "🌤️",                            # macOS UI 表情
+    "homepage": "https://...",                 # 文档 URL
+    "os": ["darwin", "linux", "win32"],        # 操作系统限制
+    "skillKey": "custom-key",                  # 自定义 entries 键名
+    "primaryEnv": "MY_API_KEY",                # 主环境变量
+    "requires": {
+      "bins": ["ffmpeg"],                      # 全部必须在 PATH 中
+      "anyBins": ["brew", "apt"],              # 至少一个在 PATH 中
+      "env": ["MY_API_KEY"],                   # 必须存在或配置提供
+      "config": ["browser.enabled"]            # 配置路径必须为真
+    },
+    "install": [
+      { "id": "brew", "kind": "brew", "formula": "ffmpeg", "bins": ["ffmpeg"],
+        "label": "Install via Homebrew", "os": ["darwin"] },
+      { "id": "node", "kind": "node", "package": "sharp" },
+      { "id": "go", "kind": "go", "module": "github.com/example/tool" },
+      { "id": "uv", "kind": "uv", "package": "summarize" },
+      { "id": "download", "kind": "download", "url": "https://...",
+        "archive": "tar.gz", "stripComponents": 1,
+        "targetDir": "~/.openclaw/tools/mytool" }
+    ]
+  }
+}
+---
+```
+
+### A2.3 配置速查表
+
+**openclaw.json `skills.*` 字段**：
+
+| 配置路径 | 类型 | 默认值 | 说明 |
+|---------|------|--------|------|
+| `skills.allowBundled` | `string[]` | 无（全部允许） | 内置 Skills 白名单 |
+| `skills.load.extraDirs` | `string[]` | `[]` | 额外扫描目录 |
+| `skills.load.watch` | `boolean` | `true` | 文件变更监视 |
+| `skills.load.watchDebounceMs` | `number` | `250` | 监视防抖(ms) |
+| `skills.install.preferBrew` | `boolean` | `true` | 优先 brew 安装 |
+| `skills.install.nodeManager` | `string` | `"npm"` | Node 包管理器 |
+| `skills.entries.<key>.enabled` | `boolean` | `true` | 启用/禁用 |
+| `skills.entries.<key>.apiKey` | `string\|SecretRef` | - | 主 API Key |
+| `skills.entries.<key>.env` | `object` | `{}` | 环境变量注入 |
+| `skills.entries.<key>.config` | `object` | `{}` | 自定义配置 |
+
+**SKILL.md Frontmatter 字段**：
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `name` | `string` | **必填** | Skill 标识 |
+| `description` | `string` | **必填** | 提示词中的描述 |
+| `homepage` | `string` | - | 文档链接 |
+| `user-invocable` | `boolean` | `true` | 用户可斜杠调用 |
+| `disable-model-invocation` | `boolean` | `false` | 模型不可自动调用 |
+| `command-dispatch` | `string` | - | `"tool"` = 直接调度 |
+| `command-tool` | `string` | - | 工具调度目标 |
+| `command-arg-mode` | `string` | `"raw"` | 参数转发模式 |
+| `metadata.openclaw.always` | `boolean` | `false` | 跳过门控 |
+| `metadata.openclaw.emoji` | `string` | - | 表情符号 |
+| `metadata.openclaw.os` | `string[]` | - | 操作系统限制 |
+| `metadata.openclaw.skillKey` | `string` | - | 自定义配置键名 |
+| `metadata.openclaw.primaryEnv` | `string` | - | 主环境变量名 |
+| `metadata.openclaw.requires.bins` | `string[]` | - | 必需二进制 |
+| `metadata.openclaw.requires.anyBins` | `string[]` | - | 任一二进制 |
+| `metadata.openclaw.requires.env` | `string[]` | - | 必需环境变量 |
+| `metadata.openclaw.requires.config` | `string[]` | - | 必需配置项 |
+| `metadata.openclaw.install` | `object[]` | - | 安装器规格 |
+
+---
+
 ## 参考来源
 
 1. `/usr/lib/node_modules/openclaw/docs/zh-CN/tools/skills.md` — Skills 核心文档
