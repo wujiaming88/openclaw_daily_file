@@ -834,53 +834,5 @@ async function sweepCronRunSessions(params) {
 | **at 类型默认删除** | 一次性任务成功后自动删除，需要 `deleteAfterRun: false` 保留 |
 | **LLM 超时** | 默认使用 agent 级别超时，可通过 `timeoutSeconds` 覆盖 |
 
-### 10.3 与你的富途交易系统的关联
-
-基于前几天的讨论，Cron 机制可以直接用于交易系统的定时分析：
-
-```bash
-# 开盘前分析（09:00 HKT，isolated，用 Opus）
-openclaw cron add \
-  --name "Pre-market analysis" \
-  --cron "0 9 * * 1-5" \
-  --tz "Asia/Hong_Kong" \
-  --session isolated \
-  --message "扫描港股相关新闻，结合当前持仓和技术指标，生成今日开盘分析报告" \
-  --model opus \
-  --announce \
-  --channel telegram \
-  --to "<your_chat_id>" \
-  --agent main
-
-# 盘中风险检查（每 30 分钟，轻量模式）
-openclaw cron add \
-  --name "Intraday risk check" \
-  --cron "*/30 9-16 * * 1-5" \
-  --tz "Asia/Hong_Kong" \
-  --session isolated \
-  --message "检查持仓风险状态，如有异常推送告警" \
-  --light-context \
-  --model sonnet \
-  --announce \
-  --channel telegram \
-  --to "<your_chat_id>"
-
-# 收盘复盘（16:30 HKT）
-openclaw cron add \
-  --name "Daily review" \
-  --cron "30 16 * * 1-5" \
-  --tz "Asia/Hong_Kong" \
-  --session isolated \
-  --message "获取今日交易记录和持仓变化，生成复盘报告" \
-  --model opus \
-  --thinking medium \
-  --announce \
-  --channel telegram \
-  --to "<your_chat_id>"
-```
-
-这比 v2.0 方案中设想的 HEARTBEAT 驱动更合适——Cron 的 isolated session 天然支持精确定时 + 独立模型 + 频道投递。
-
----
 
 > 📝 研究完成于 2026-03-25，黄山 (wairesearch)
