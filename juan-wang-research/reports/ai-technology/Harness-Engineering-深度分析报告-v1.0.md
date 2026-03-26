@@ -350,36 +350,338 @@ Terminal Bench 2.0 排行榜验证了 Harness 的重要性：**Opus 4.6 在 Clau
 
 ---
 
-## 第七章：Harness Engineering 与 OpenClaw 的映射
+## 第七章：Harness Engineering 与 OpenClaw 深度关联研究
 
-从 Harness Engineering 的六大组件视角审视 OpenClaw：
+OpenClaw 不只是一个聊天机器人框架——它是一个**完整的 Agent Harness 平台**。本章基于 OpenClaw 官方文档和源码，系统性地将 Harness Engineering 的每个组件映射到 OpenClaw 的具体实现。
 
-| Harness 组件 | OpenClaw 对应 | 成熟度 |
-|-------------|-------------|-------|
-| **工具集成层** | Tool Policy + MCP + Exec + Skills | ⭐⭐⭐⭐⭐ 完善 |
-| **记忆与状态** | MEMORY.md + LCM (Lossless Context Management) + Session Store | ⭐⭐⭐⭐ 良好 |
-| **上下文工程** | AGENTS.md + SOUL.md + Skills 渐进式加载 + Compaction | ⭐⭐⭐⭐ 良好 |
-| **规划与分解** | Sub-agents + ACP + sessions_spawn + task delegation | ⭐⭐⭐⭐ 良好 |
-| **验证与护栏** | Tool Policy + Sandbox + Exec Approvals + Elevated Mode | ⭐⭐⭐⭐⭐ 完善 |
-| **模块化扩展** | Skills (ClawHub) + Hooks + Cron + Channel Plugins | ⭐⭐⭐⭐⭐ 完善 |
+### 7.1 总览映射
 
-### 7.1 OpenClaw 的 Harness 优势
+| Harness 组件 | OpenClaw 实现 | 关键机制 | 成熟度 |
+|-------------|-------------|---------|-------|
+| **工具集成层** | Tool Policy + MCP + Exec + Skills | 分层授权、沙箱隔离、安全 bin | ⭐⭐⭐⭐⭐ |
+| **记忆与状态** | MEMORY.md + LCM + Memory Search + Session Store | 向量搜索、混合检索、时间衰减 | ⭐⭐⭐⭐⭐ |
+| **上下文工程** | Workspace Context + Skills 渐进加载 + Compaction | 自动压缩、记忆冲刷、上下文预算 | ⭐⭐⭐⭐⭐ |
+| **规划与分解** | Sub-agents + ACP + Cron + Hooks | 嵌套编排、线程绑定、定时调度 | ⭐⭐⭐⭐ |
+| **验证与护栏** | Sandbox + Exec Approvals + Tool Policy + Safe Bins | Docker 隔离、命令白名单、权限提升 | ⭐⭐⭐⭐⭐ |
+| **模块化扩展** | Skills (ClawHub) + Plugins + Channel Plugins | 热加载、门控过滤、Provider 无关 | ⭐⭐⭐⭐⭐ |
 
-1. **Skills = 渐进式上下文注入**：完美实现了"不要一次性加载所有工具"的 Harness 原则
-2. **LCM = 上下文压缩**：Lossless Context Management 提供了对话历史的无损压缩
-3. **ACP = Agent 编排**：支持 Claude Code / Codex / Pi 等多种 Agent 运行时
-4. **Sandbox = 安全执行**：Docker 隔离的代码执行环境
-5. **Multi-Agent = 专家分工**：协调者-专家模式天然适配 Harness 架构
+### 7.2 组件 1：工具集成层——Agent 的手和脚
 
-### 7.2 与 OpenAI 方法的差异
+**Harness 原则**：给 Agent 通用工具（Bash），加上安全约束。
 
-| OpenAI 方法 | OpenClaw 方法 |
-|------------|-------------|
-| AGENTS.md 作为目录 | AGENTS.md + SOUL.md + MEMORY.md + TOOLS.md 多文件体系 |
-| 自定义 linter 强制架构 | Tool Policy + Exec Approvals 强制安全 |
-| Agent-to-Agent Review | Sub-agent 模式 + sessions_send |
-| 仓库内知识库 | Workspace + Skills + Memory 三层知识体系 |
-| Codex 单一模型 | Provider 无关，支持多模型切换 |
+**OpenClaw 实现**：
+
+```
+┌─────────────────────────────────────────────┐
+│              Tool Policy Layer               │
+│  allow / deny / elevated / sandbox           │
+├─────────────────────────────────────────────┤
+│  exec (Bash)  │  read/write/edit  │  browser │
+│  process      │  message          │  canvas  │
+│  sessions_*   │  memory_*         │  tts     │
+├─────────────────────────────────────────────┤
+│  Skills (on-demand)  │  MCP Servers          │
+│  ClawHub Registry    │  Plugin Tools         │
+└─────────────────────────────────────────────┘
+```
+
+**关键设计对应**：
+
+| Harness 概念 | OpenClaw 实现 |
+|-------------|-------------|
+| Bash 通用工具 | `exec` 工具：支持前台/后台、PTY、超时、沙箱隔离 |
+| 工具沙箱化 | `tools.exec.host`: sandbox / gateway / node 三层执行位置 |
+| 最小权限 | `tools.exec.security`: deny / allowlist / full 三级授权 |
+| Safe Bins | 预定义安全命令（jq, grep, sort 等），无需 allowlist 即可执行 |
+| 工具审批 | `exec-approvals.json`：人类审批命令执行，支持 allow-once / allow-always |
+| 文件系统 | `read` / `write` / `edit` 工具：Agent 的工作台，workspace 为 root |
+| 浏览器 | `browser` 工具：DOM 快照、截图、导航，类似 OpenAI 的 Chrome DevTools 集成 |
+
+**与 OpenAI Codex 的对比**：OpenAI 将 Chrome DevTools Protocol 接入 Agent 运行时。OpenClaw 的 `browser` 工具提供等价能力（snapshot、screenshot、act），且通过 Tool Policy 实现细粒度权限控制。
+
+### 7.3 组件 2：记忆与状态——Agent 的大脑
+
+**Harness 原则**：Agent 需要跨会话的持久记忆。
+
+**OpenClaw 的多层记忆架构**：
+
+```
+┌─────────────────────────────────────────────┐
+│           Layer 1: 工作记忆                    │
+│  上下文窗口内的对话历史                          │
+├─────────────────────────────────────────────┤
+│           Layer 2: 会话记忆                    │
+│  Session Store (sessions.json)               │
+│  Transcript (sessionId.jsonl) — 树状结构       │
+├─────────────────────────────────────────────┤
+│           Layer 3: 持久记忆                    │
+│  MEMORY.md — 策划的长期记忆                     │
+│  memory/YYYY-MM-DD.md — 每日日志               │
+├─────────────────────────────────────────────┤
+│           Layer 4: 语义检索                    │
+│  memory_search — 向量 + BM25 混合搜索          │
+│  memory_get — 精确读取                         │
+│  支持: OpenAI / Gemini / Voyage / Local GGUF   │
+├─────────────────────────────────────────────┤
+│           Layer 5: 上下文管理 (LCM)             │
+│  Lossless Context Management — 无损压缩历史     │
+│  lcm_grep / lcm_expand / lcm_expand_query    │
+└─────────────────────────────────────────────┘
+```
+
+**关键创新**：
+
+1. **混合搜索 (Hybrid Search)**：向量相似度 + BM25 关键词，解决"语义匹配强但精确 token 弱"的问题
+2. **时间衰减 (Temporal Decay)**：指数衰减函数（半衰期 30 天），新记忆自然排名更高
+3. **MMR 去重 (Maximal Marginal Relevance)**：避免返回近似重复的搜索结果
+4. **自动记忆冲刷**：压缩前自动触发 silent turn，将关键上下文写入磁盘
+5. **QMD 后端**：可选的 BM25 + 向量 + 重排序搜索 sidecar
+
+**与 Anthropic claude-progress.txt 的对比**：
+
+| Anthropic 方案 | OpenClaw 方案 |
+|---------------|-------------|
+| `claude-progress.txt` 单文件 | `MEMORY.md` + `memory/YYYY-MM-DD.md` 分层 |
+| 纯文本日志 | 语义向量索引 + BM25 + 时间衰减 |
+| 手动读取 | `memory_search` 自动语义召回 |
+| 每次会话全量读取 | 按需检索，上下文友好 |
+| 无跨会话搜索 | LCM 支持跨会话压缩历史检索 |
+
+### 7.4 组件 3：上下文工程——Agent 的视野
+
+**Harness 原则**：渐进式披露，AGENTS.md 是目录不是百科全书。
+
+**OpenClaw 的 Workspace Context 体系**：
+
+```
+系统提示词构建顺序：
+┌──────────────────────────────────────────┐
+│ 1. 工具列表 + JSON Schema                 │  ← 固定开销
+│ 2. Skills 列表 (name + description)       │  ← 渐进式，按需 read
+│ 3. 安全规则 + 运行时元数据                  │
+│ 4. Project Context（注入 Workspace 文件）   │
+│    ├── AGENTS.md   ← 操作手册              │
+│    ├── SOUL.md     ← 人格定义              │
+│    ├── IDENTITY.md ← 身份信息              │
+│    ├── USER.md     ← 用户画像              │
+│    ├── TOOLS.md    ← 本地工具笔记           │
+│    ├── HEARTBEAT.md← 心跳任务清单           │
+│    └── BOOTSTRAP.md← 首次启动仪式           │
+│ 5. 时间 / 时区                            │
+│ 6. Inbound Context（消息元数据）            │
+└──────────────────────────────────────────┘
+```
+
+**关键设计对标 Harness 原则**：
+
+| Harness 原则 | OpenClaw 实现 |
+|-------------|-------------|
+| **地图，不是手册** | AGENTS.md 是操作手册（可以很短），技能在 Skills 中按需加载 |
+| **渐进式披露** | Skills 只注入 `name + description`（~97 字符/skill），完整指令通过 `read SKILL.md` 按需获取 |
+| **上下文预算** | `bootstrapMaxChars: 20000`（单文件）、`bootstrapTotalMaxChars: 150000`（总计）自动截断 |
+| **上下文可观测** | `/context list` 和 `/context detail` 显示每个注入文件的大小和 token 估算 |
+| **防腐烂** | Skills 门控机制（`requires.bins`、`requires.env`、`requires.config`）自动过滤不可用技能 |
+
+**OpenAI 的 88 个 AGENTS.md vs OpenClaw 的多文件体系**：
+
+OpenAI 在仓库中使用 88 个 AGENTS.md 文件实现分布式指令。OpenClaw 采用不同但等价的策略：
+
+- **全局指令** → `AGENTS.md`（仅 1 个，相当于 OpenAI 的 root AGENTS.md）
+- **领域专家知识** → Skills（每个 Skill 独立的 `SKILL.md`，只在需要时加载）
+- **人格与行为** → `SOUL.md`（分离关注点）
+- **用户特定偏好** → `USER.md`
+- **本地工具配置** → `TOOLS.md`
+
+这种设计的优势：**Skill 是可发现的**（通过 ClawHub 注册表），而 AGENTS.md 文件是仓库特定的。
+
+### 7.5 组件 4：规划与分解——Agent 的协作能力
+
+**Harness 原则**：分解复杂任务，增量进步，专门化子代理。
+
+**OpenClaw 的多层编排架构**：
+
+```
+┌─ 协调者 Agent (main) ──────────────────────┐
+│                                             │
+│  sessions_spawn → Sub-agent (background)    │
+│  sessions_spawn → ACP Session (thread-bound)│
+│  sessions_send  → Cross-session messaging   │
+│  subagents      → List / steer / kill       │
+│                                             │
+│  ┌─ Sub-agent 1 ────┐  ┌─ ACP Session ─┐  │
+│  │ wairesearch      │  │ Claude Code    │  │
+│  │ (研究专家)        │  │ (编码代理)      │  │
+│  └──────────────────┘  └───────────────┘  │
+│                                             │
+│  ┌─ Cron Job ───────┐  ┌─ Hook ─────────┐ │
+│  │ 定时任务          │  │ 事件驱动        │ │
+│  │ (isolated session)│  │ (command:new等) │ │
+│  └──────────────────┘  └───────────────┘  │
+└─────────────────────────────────────────────┘
+```
+
+**与 OpenAI Ralph Loop 的对比**：
+
+| 概念 | OpenAI 方案 | OpenClaw 方案 |
+|------|-----------|-------------|
+| 跨窗口延续 | Ralph Loop（拦截退出 → 重注入 prompt） | LCM + Compaction（压缩历史 → 保持连续性） |
+| 子代理 | 未明确提及 | `sessions_spawn`：支持 run/session 模式、嵌套深度、级联停止 |
+| 增量进步 | 特性列表 + git commit | Sub-agent announce + 共享文件系统 |
+| 定时任务 | 文档园丁 Agent（周期运行） | Cron 系统：精确调度、隔离会话、多种交付模式 |
+| 人类审批 | PR Review | Exec Approvals + Elevated Mode |
+
+**嵌套编排模式**：OpenClaw 支持 `maxSpawnDepth: 2`，实现 main → orchestrator → workers 的三层架构。深度 1 的编排者获得 session 工具；深度 2 的 worker 不能再生成子代理。
+
+### 7.6 组件 5：验证与护栏——Agent 的安全网
+
+**Harness 原则**：机械化不变量，而非文档约定。
+
+**OpenClaw 的多层安全模型**：
+
+```
+Layer 1: Tool Policy (声明式)
+├── allow: ["read", "write", "exec"]
+├── deny: ["browser", "message"]
+└── elevated: ["exec"] (需人类审批提升)
+
+Layer 2: Exec Approvals (运行时)
+├── deny: 拒绝所有命令
+├── allowlist: 只允许已批准的命令
+└── full: 允许所有命令（需明确配置）
+
+Layer 3: Sandbox (Docker 隔离)
+├── mode: off / non-main / all
+├── scope: session / agent / shared
+├── workspaceAccess: none / ro / rw
+└── network: none (默认无出站)
+
+Layer 4: Safe Bins (命令级白名单)
+├── jq, grep, cut, sort, uniq, head, tail, tr, wc
+└── 每个命令有 flag 白名单/黑名单 (deniedFlags, allowedValueFlags)
+
+Layer 5: Pairing & DM Policy (接入层)
+├── pairing: 未知发送者需审批码
+├── allowlist: 只允许白名单用户
+└── open: 公开访问
+```
+
+**与 OpenAI "enforce invariants, not implementations" 原则的对应**：
+
+OpenAI 使用自定义 linter + CI 执行架构约束。OpenClaw 的等价物是 **Tool Policy + Sandbox + Exec Approvals** 三层防线：
+
+- **Tool Policy** = 声明式约束（哪些工具可用）
+- **Exec Approvals** = 运行时门控（哪些命令可执行）
+- **Sandbox** = 环境隔离（Agent 只能在容器内操作）
+- **Safe Bins** = 编译时策略（命令参数的白名单/黑名单）
+
+### 7.7 组件 6：模块化与扩展——Agent 的能力市场
+
+**Harness 原则**：可插拔组件，渐进式能力加载。
+
+**OpenClaw Skills 系统**：
+
+```
+技能加载优先级：
+1. extraDirs (config.skills.load.extraDirs)     ← 最低
+2. Plugin skill dirs                             │
+3. Bundled skills (npm 包自带)                    │
+4. Managed skills (~/.openclaw/skills)           │
+5. Personal agent skills (~/.agents/skills)      │
+6. Project agent skills (workspace/.agents/skills)│
+7. Workspace skills (workspace/skills)           ← 最高
+```
+
+**门控过滤系统**：
+
+```yaml
+metadata:
+  openclaw:
+    requires:
+      bins: ["uv"]          # PATH 中必须有 uv
+      env: ["GEMINI_API_KEY"] # 必须设置 API key
+      config: ["browser.enabled"] # 必须启用浏览器
+    primaryEnv: "GEMINI_API_KEY"
+    os: ["darwin", "linux"]   # 平台过滤
+```
+
+**这是 Harness Engineering 渐进式披露的完美实现**：
+- 系统提示词只注入 `name + description`（每个 skill 约 97 字符）
+- 完整指令通过 `read SKILL.md` 按需获取
+- 不可用的技能被自动过滤（缺少依赖/环境变量/配置）
+- 通过 ClawHub 注册表实现技能的发现和分发
+
+**与 OpenAI "boring technology" 原则的关联**：OpenAI 倾向于使用"无聊"的技术（可组合、API 稳定、训练集覆盖率高）。OpenClaw 的 Skills 系统让 Agent 按需加载能力，避免上下文膨胀，同时保持工具链的稳定性。
+
+### 7.8 OpenClaw 独有的 Harness 创新
+
+以下是 OpenClaw 实现了但 Harness Engineering 文献中尚未系统讨论的能力：
+
+#### 1. 自动记忆冲刷 (Pre-Compaction Memory Flush)
+
+```
+上下文接近满 → 触发 soft threshold → 静默 Agent turn → 
+写入 memory/YYYY-MM-DD.md → NO_REPLY（用户无感知）→ 
+执行压缩 → 新的干净上下文
+```
+
+这解决了 Harness Engineering 的一个核心问题：**上下文丢失**。OpenAI 和 Anthropic 都依赖 Agent 主动写文件来保存上下文，但 OpenClaw 将其**自动化**了。
+
+#### 2. 多文件人格体系 (Persona Separation)
+
+| 文件 | 职责 | 加载时机 |
+|------|------|---------|
+| `AGENTS.md` | 操作手册 | 每次会话 |
+| `SOUL.md` | 人格、语调、边界 | 每次会话 |
+| `IDENTITY.md` | 姓名、身份 | 每次会话 |
+| `USER.md` | 用户画像 | 每次会话 |
+| `TOOLS.md` | 环境特定笔记 | 每次会话 |
+| `MEMORY.md` | 长期策划记忆 | 仅主会话（安全隔离） |
+| `HEARTBEAT.md` | 心跳任务 | 心跳触发时 |
+| `BOOTSTRAP.md` | 首次启动 | 仅一次 |
+
+OpenAI 将所有指令放在 AGENTS.md 层级中；OpenClaw 将**关注点分离**到专门文件，每个文件有明确的加载规则和安全边界。
+
+#### 3. 心跳系统 (Heartbeat)
+
+```
+每 30 分钟 → 读取 HEARTBEAT.md → 执行检查清单 → 
+如果无事 → HEARTBEAT_OK（不产生输出）
+如果有事 → 推送告警到指定频道
+```
+
+这是 OpenAI "文档园丁 Agent" 的通用化实现——不只清理文档，而是**任意周期性任务**的执行框架。
+
+#### 4. LCM (Lossless Context Management)
+
+```
+对话历史太长 → LCM 压缩为摘要 DAG → 保留完整细节索引 →
+需要时 lcm_grep → lcm_expand_query → 恢复精确上下文
+```
+
+这超越了 Anthropic 的压缩方案。Anthropic 的 compaction 是有损的（摘要替代原文），OpenClaw 的 LCM 是**无损的**（摘要 + 原文索引，随时可回溯）。
+
+### 7.9 OpenClaw 作为 Harness 平台的定位
+
+综合以上分析，OpenClaw 在 Harness Engineering 生态中的定位是：
+
+```
+OpenAI Codex  → 编码领域的 Harness（专注代码生成）
+Claude Code   → 编码领域的 Harness（专注代码理解）
+OpenClaw      → 通用 Agent Harness 平台（编码 + 对话 + 自动化）
+```
+
+**OpenClaw 的独特价值**：它不只是一个 Coding Agent 的 Harness，而是一个**通用 Agent 运行时平台**，支持：
+- 多渠道通信（Telegram/Discord/WhatsApp/Feishu/DingTalk/…）
+- 多模型切换（OpenAI/Anthropic/Google/…）
+- 多 Agent 协作（协调者-专家模式）
+- 多运行时（Pi 内置 + ACP 外部 Agent）
+- 多部署模式（本地/VPS/Tailscale）
+
+用 Cobus Greyling 的计算机类比：
+- **模型** = CPU（原始处理能力）
+- **上下文窗口** = 有限的工作内存
+- **OpenClaw** = 操作系统（管理上下文、初始化序列、标准工具驱动）
+- **Agent** = 运行在上面的应用程序
 
 ---
 
@@ -487,6 +789,8 @@ Harness 时代：
 
 ## 参考来源
 
+### 行业来源
+
 1. OpenAI. "Harness Engineering: Leveraging Codex in an Agent-First World." 2026-02. https://openai.com/index/harness-engineering/
 2. Anthropic. "Effective Harnesses for Long-Running Agents." 2025-11. https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
 3. LangChain (Vivek Trivedy). "The Anatomy of an Agent Harness." 2026-03. https://blog.langchain.com/the-anatomy-of-an-agent-harness/
@@ -495,6 +799,18 @@ Harness 时代：
 6. Cobus Greyling. "The Rise of AI Harness Engineering." Medium, 2026-03. https://cobusgreyling.medium.com/the-rise-of-ai-harness-engineering-5f5220de393e
 7. Deepak Bhaskaran. "Harness Engineering." Medium, 2026-03. https://medium.com/@deepak.bhaskaran/harness-engineering-d50960e497d0
 
+### OpenClaw 文档来源
+
+8. OpenClaw. "Skills: managed vs workspace, gating rules, and config/env wiring." https://docs.openclaw.ai/tools/skills
+9. OpenClaw. "Session Management & Compaction (Deep Dive)." https://docs.openclaw.ai/reference/session-management-compaction
+10. OpenClaw. "Agent Workspace: location, layout, and backup strategy." https://docs.openclaw.ai/concepts/agent-workspace
+11. OpenClaw. "Context: what the model sees, how it is built, and how to inspect it." https://docs.openclaw.ai/concepts/context
+12. OpenClaw. "Memory: workspace files + automatic memory flush." https://docs.openclaw.ai/concepts/memory
+13. OpenClaw. "Exec tool usage, stdin modes, and TTY support." https://docs.openclaw.ai/tools/exec
+14. OpenClaw. "Sub-agents: spawning isolated agent runs." https://docs.openclaw.ai/tools/subagents
+15. OpenClaw. "ACP Agents: external coding harnesses." https://docs.openclaw.ai/tools/acp-agents
+16. OpenClaw. "AGENTS.md Template." https://docs.openclaw.ai/reference/templates/AGENTS
+
 ---
 
-*报告由 wairesearch (黄山) 生成 | 2026-03-26*
+*报告由 wairesearch (黄山) 生成 | 2026-03-26 | v1.1 — 增加 OpenClaw 深度关联研究*
