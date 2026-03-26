@@ -603,5 +603,565 @@ Phase 3（企业级，持续）
 
 ---
 
-*文档由 wairesearch (黄山) 生成 | 2026-03-26 | v1.0*
+## 第八章：私有化部署架构
+
+### 8.1 为什么私有化部署是对的选择
+
+中国企业市场有三个硬约束，决定了私有化部署是主流需求：
+
+| 约束 | 说明 | 影响 |
+|------|------|------|
+| **数据不出域** | 金融、政务、医疗、制造等行业要求数据在企业内网 | 必须支持内网部署 |
+| **模型私有化** | 企业自建/微调模型（DeepSeek、Qwen、GLM 私有部署） | 必须对接本地模型 |
+| **审计合规** | 等保 2.0、数据安全法、行业监管 | 日志本地留存、操作可追溯 |
+
+Gartner 预测 2026 年底约 40% 企业应用将集成 AI Agent，而中国企业 82% 更倾向私有化或混合部署。
+
+### 8.2 三种部署模式
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     部署模式选择                               │
+├──────────────┬─────────────────┬────────────────────────────┤
+│  全私有化      │   混合部署        │  托管 SaaS                  │
+│  (Air-Gapped) │  (Hybrid)       │  (Hosted)                  │
+├──────────────┼─────────────────┼────────────────────────────┤
+│ 全部在企业内网  │ 平台在企业内网     │ 全部在我方云上               │
+│ 本地模型       │ 可调外部模型       │ 用户通过 Web/IM 访问         │
+│ 无外网依赖     │ 模型 API 出站     │ 适合中小企业                 │
+│ 适合：金融、政务 │ 适合：互联网、制造  │ 适合：初创、中小             │
+└──────────────┴─────────────────┴────────────────────────────┘
+```
+
+#### 全私有化部署架构
+
+```
+企业内网
+┌──────────────────────────────────────────────────┐
+│                                                   │
+│  ┌─ 管理控制台 ──────────────────────────────┐    │
+│  │  Web UI（租户管理、Agent 配置、监控报表）     │    │
+│  └──────────────────────────────────────────┘    │
+│        │                                          │
+│  ┌─ SaaS API Layer ──────────────────────────┐   │
+│  │  认证 / 计费 / 租户路由 / 配置分发            │   │
+│  └──────────────────────────────────────────┘   │
+│        │              │              │            │
+│  ┌─Gateway─┐  ┌─Gateway─┐  ┌─Gateway─┐         │
+│  │ 部门 A   │  │ 部门 B   │  │ 部门 C   │         │
+│  │ HR Agent │  │ Dev Agent│  │ Sales   │         │
+│  └────┬────┘  └────┬────┘  └────┬────┘         │
+│       │             │             │               │
+│  ┌─ 企业系统集成层 ────────────────────────────┐  │
+│  │  MCP Server Hub                              │  │
+│  │  ┌─OA─┐ ┌─ERP─┐ ┌─CRM─┐ ┌─HR─┐ ┌─Wiki─┐  │  │
+│  │  └────┘ └─────┘ └─────┘ └────┘ └──────┘  │  │
+│  └───────────────────────────────────────────┘  │
+│       │                                          │
+│  ┌─ 模型层 ─────────────────────────────────┐   │
+│  │  私有 LLM（DeepSeek / Qwen / GLM 本地）    │   │
+│  │  + 向量数据库（Milvus / ChromaDB 本地）     │   │
+│  │  + Ollama / vLLM / TGI                     │   │
+│  └──────────────────────────────────────────┘   │
+│                                                   │
+└──────────────────────────────────────────────────┘
+     ↑ 无外网依赖
+```
+
+### 8.3 私有化部署清单
+
+| 组件 | 技术选型 | 说明 |
+|------|---------|------|
+| **容器编排** | Docker Compose / K8s | 单节点用 Compose，集群用 K8s |
+| **Gateway 实例** | OpenClaw Gateway | 每部门/每租户一个实例 |
+| **管理控制台** | Web UI（需新建） | 配置管理、监控、审计 |
+| **模型服务** | Ollama / vLLM / TGI | 对接企业私有模型 |
+| **向量数据库** | Milvus / ChromaDB / QDrant | Memory Search 后端 |
+| **消息队列** | Redis / RabbitMQ | Gateway 间通信（可选） |
+| **日志存储** | ELK / Loki | 审计日志聚合 |
+| **对象存储** | MinIO / NAS | 文件、媒体、会话存档 |
+| **反向代理** | Nginx / Traefik | TLS 终止、路由、负载 |
+
+### 8.4 私有模型对接
+
+OpenClaw 天然支持 Provider 无关架构，私有模型只需配置 `baseUrl`：
+
+```json5
+{
+  // 方式 1：直接对接 Ollama（本地）
+  models: {
+    providers: [
+      {
+        id: "ollama",
+        api: "ollama",
+        baseUrl: "http://192.168.1.100:11434"
+      }
+    ]
+  },
+
+  // 方式 2：对接 vLLM（兼容 OpenAI API）
+  models: {
+    providers: [
+      {
+        id: "private-llm",
+        api: "openai",
+        baseUrl: "http://192.168.1.200:8000/v1",
+        apiKey: "${PRIVATE_LLM_KEY}"
+      }
+    ]
+  },
+
+  // 方式 3：对接 LiteLLM 代理（统一管理多个模型）
+  models: {
+    providers: [
+      {
+        id: "litellm",
+        api: "openai",
+        baseUrl: "http://litellm.internal:4000/v1",
+        apiKey: "${LITELLM_KEY}"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 第九章：企业内部系统集成——数字员工平台
+
+### 9.1 集成架构总览
+
+将 Agent 从"聊天机器人"升级为"数字员工"的关键：**让 Agent 能操作企业内部系统**。
+
+```
+┌──────────────────────────────────────────────────────┐
+│                    数字员工 Agent                       │
+│          (通过自然语言接收指令，执行业务操作)              │
+├──────────────────────────────────────────────────────┤
+│                  工具集成层                              │
+│                                                       │
+│  ┌─ 内置工具 ──┐  ┌─ MCP Server ─┐  ┌─ 自定义 ──┐   │
+│  │ read/write  │  │ OA MCP       │  │ Plugin    │   │
+│  │ exec        │  │ ERP MCP      │  │ Tools     │   │
+│  │ web_search  │  │ CRM MCP      │  │           │   │
+│  │ browser     │  │ HR MCP       │  │ Webhook   │   │
+│  │ message     │  │ Wiki MCP     │  │ Skills    │   │
+│  └─────────────┘  └──────────────┘  └───────────┘   │
+│                                                       │
+├──────────────────────────────────────────────────────┤
+│                   安全护栏层                            │
+│  Tool Policy → Exec Approvals → Sandbox → Audit      │
+└──────────────────────────────────────────────────────┘
+         │              │              │
+    ┌────▼────┐  ┌──────▼─────┐  ┌───▼────┐
+    │  OA 系统  │  │  ERP 系统   │  │ CRM 系统│
+    │ (审批流)  │  │ (订单/库存) │  │ (客户)  │
+    └─────────┘  └────────────┘  └────────┘
+```
+
+### 9.2 三种集成方式
+
+#### 方式 1：MCP Server（推荐，标准化）
+
+MCP (Model Context Protocol) 是 2025-2026 年成为事实标准的 Agent-工具协议。通过 MCP，Agent 可以：
+- **发现工具**：自动获取企业系统提供的能力列表
+- **调用工具**：通过标准化 JSON-RPC 调用企业 API
+- **获取上下文**：从企业系统拉取 Agent 需要的背景信息
+
+```
+Agent ←→ OpenClaw Gateway ←→ MCP Server Hub ←→ 企业系统 API
+                                    │
+                         ┌──────────┼──────────┐
+                         │          │          │
+                    OA MCP     ERP MCP    CRM MCP
+                    Server     Server     Server
+```
+
+**示例：OA 系统 MCP Server 提供的工具**
+
+| MCP 工具 | 功能 | 业务场景 |
+|---------|------|---------|
+| `oa.submit_leave` | 提交请假申请 | "帮我请明天的假" |
+| `oa.approve_request` | 审批流程操作 | "批准张三的报销" |
+| `oa.query_attendance` | 查询考勤 | "这个月我迟到几次" |
+| `oa.book_meeting_room` | 预订会议室 | "帮我订明天下午3点的会议室" |
+| `oa.send_notification` | 发送通知 | "通知全组明天开会" |
+
+**对接配置示例**：
+
+```json5
+// mcporter 配置：config/mcporter.json
+{
+  "servers": {
+    "oa": {
+      "url": "http://oa-mcp.internal:3000/mcp",
+      "auth": { "type": "bearer", "token": "${OA_MCP_TOKEN}" },
+      "tools": ["submit_leave", "approve_request", "query_attendance",
+                "book_meeting_room", "send_notification"]
+    },
+    "erp": {
+      "url": "http://erp-mcp.internal:3000/mcp",
+      "auth": { "type": "bearer", "token": "${ERP_MCP_TOKEN}" },
+      "tools": ["query_inventory", "create_order", "check_shipment"]
+    },
+    "crm": {
+      "url": "http://crm-mcp.internal:3000/mcp",
+      "auth": { "type": "bearer", "token": "${CRM_MCP_TOKEN}" },
+      "tools": ["query_customer", "create_lead", "update_opportunity"]
+    }
+  }
+}
+```
+
+#### 方式 2：自定义 Skills（灵活，快速集成）
+
+对于不支持 MCP 的老系统，可以写 Skill 封装 REST API：
+
+```
+~/.openclaw/skills/company-oa/
+├── SKILL.md           ← Agent 何时使用这个技能
+├── scripts/
+│   ├── submit_leave.py    ← 调用 OA REST API
+│   ├── query_attendance.py
+│   └── book_room.py
+└── references/
+    └── api-docs.md    ← OA API 文档（给 Agent 参考）
+```
+
+**SKILL.md 示例**：
+
+```yaml
+---
+name: company-oa
+description: >
+  操作公司 OA 系统。使用场景：请假申请、审批查询、考勤查询、
+  会议室预订、通知发送。触发词：请假、审批、考勤、会议室、OA。
+metadata:
+  openclaw:
+    requires:
+      env: ["OA_API_URL", "OA_API_TOKEN"]
+---
+
+# 公司 OA 系统操作
+
+## 可用操作
+
+### 请假
+执行: `python scripts/submit_leave.py --type 事假 --start 2026-03-27 --days 1`
+
+### 查询考勤
+执行: `python scripts/query_attendance.py --month 2026-03`
+
+### 预订会议室
+执行: `python scripts/book_room.py --room A301 --date 2026-03-27 --time 15:00 --duration 60`
+```
+
+#### 方式 3：Webhook + Hooks（事件驱动）
+
+企业系统主动推送事件到 Agent：
+
+```json5
+// openclaw.json 中的 Hooks 配置
+{
+  hooks: {
+    mappings: {
+      // OA 审批到达时触发 Agent
+      "oa-approval": {
+        agentId: "hr-agent",
+        transform: {
+          module: "./hooks/oa-approval-transform.js"
+        }
+      },
+      // CRM 新线索到达时触发 Agent
+      "crm-new-lead": {
+        agentId: "sales-agent",
+        deliver: { channel: "feishu", to: "sales-group-id" }
+      },
+      // 监控告警触发 Agent
+      "alert-webhook": {
+        agentId: "ops-agent",
+        deliver: { channel: "dingtalk", to: "ops-group-id" }
+      }
+    }
+  }
+}
+```
+
+**调用方式**：企业系统发 HTTP POST 到 Gateway：
+
+```bash
+curl -X POST http://gateway:18789/hooks/oa-approval \
+  -H "Authorization: Bearer ${HOOKS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"type": "approval_pending", "applicant": "张三", "reason": "事假1天"}'
+```
+
+### 9.3 典型数字员工场景
+
+#### 场景 1：HR 数字员工
+
+```
+员工（飞书/钉钉）
+    │ "帮我请明天的假"
+    ▼
+HR Agent
+    │ 1. 理解意图 → 请假
+    │ 2. 查询考勤 → 调用 oa.query_attendance（确认剩余假期）
+    │ 3. 提交申请 → 调用 oa.submit_leave（创建请假单）
+    │ 4. 通知审批人 → 调用 oa.send_notification
+    ▼
+员工收到确认："已提交请假申请（事假1天，3月27日），等待李总审批。"
+```
+
+**Agent Workspace 配置**：
+```
+AGENTS.md: "你是公司 HR 助手，帮员工处理请假、考勤、入职等事务。"
+SOUL.md:   "语调：温暖专业。边界：不处理薪资相关问题。"
+USER.md:   "公司假期政策：年假15天，事假需提前1天申请..."
+TOOLS.md:  "OA 系统地址：http://oa.internal，MCP 端口：3000"
+```
+
+#### 场景 2：销售数字员工
+
+```
+销售经理（企业微信）
+    │ "帮我查一下上海区这个月的成交情况"
+    ▼
+Sales Agent
+    │ 1. 理解意图 → 销售数据查询
+    │ 2. 查询 CRM → 调用 crm.query_opportunities（筛选上海区+本月）
+    │ 3. 汇总分析 → Agent 内部计算
+    │ 4. 生成报告 → 调用 write（生成 Markdown 报告）
+    ▼
+经理收到："上海区3月成交12单，总额￥2,340,000，环比+15%。
+          TOP3 客户：A公司（¥800K）、B公司（¥500K）、C公司（¥400K）。
+          在途机会：8个，预计金额 ¥1,800,000。"
+```
+
+#### 场景 3：运维数字员工
+
+```
+监控系统（Webhook）
+    │ POST /hooks/alert-webhook
+    │ {"type": "cpu_high", "host": "prod-web-03", "value": "95%"}
+    ▼
+Ops Agent
+    │ 1. 收到告警 → CPU 过高
+    │ 2. 诊断 → exec "ssh prod-web-03 top -bn1" （沙箱+审批）
+    │ 3. 分析 → 发现 Java 进程内存泄漏
+    │ 4. 建议 → 生成处理方案
+    │ 5. 推送 → 发送到钉钉运维群
+    ▼
+运维群收到："🔴 prod-web-03 CPU 95%
+            根因：Java 进程 PID 12345 内存泄漏（RSS 7.2GB）
+            建议：重启服务或扩容。执行 /approve 确认重启。"
+```
+
+#### 场景 4：研发数字员工
+
+```
+开发者（Slack / 飞书）
+    │ "帮我查一下 JIRA-1234 的状态，顺便看看相关的代码改动"
+    ▼
+Dev Agent
+    │ 1. 查询项目管理 → 调用 jira_mcp.get_issue（获取 JIRA-1234 详情）
+    │ 2. 关联代码 → 调用 gitlab_mcp.get_merge_requests（按 JIRA-1234 过滤）
+    │ 3. 分析变更 → 读取 MR diff，总结改动范围
+    │ 4. 回复汇总
+    ▼
+开发者收到："JIRA-1234：用户登录超时
+            状态：In Review | 优先级：P1
+            关联 MR：!567（auth-service，+120/-30 行）
+            改动摘要：重构了 session 过期逻辑，增加了 Redis 缓存层
+            Review 状态：2/3 approved，等待 @王五 Review"
+```
+
+### 9.4 企业系统集成矩阵
+
+| 系统类型 | 推荐集成方式 | 常见系统 | 数字员工场景 |
+|---------|------------|---------|------------|
+| **OA** | MCP Server | 飞书审批、钉钉审批、泛微 | 请假、审批、考勤、会议室 |
+| **ERP** | MCP Server | SAP、金蝶、用友 | 订单查询、库存预警、采购申请 |
+| **CRM** | MCP Server | Salesforce、纷享销客 | 客户查询、商机跟进、销售报表 |
+| **HR** | MCP / Skill | 北森、薪人薪事 | 入职办理、假期管理、招聘流程 |
+| **项目管理** | MCP Server | JIRA、飞书项目、Coding | 任务查询、进度汇报、Sprint 回顾 |
+| **代码托管** | MCP Server | GitLab、GitHub、Gitee | MR 查询、CI 状态、代码搜索 |
+| **监控** | Webhook→Hooks | Prometheus、Zabbix、Grafana | 告警处理、根因分析、容量规划 |
+| **知识库** | MCP / Skill | Confluence、语雀、飞书文档 | 知识检索、文档生成、FAQ 回答 |
+| **数据库** | MCP（只读） | MySQL、PostgreSQL、ClickHouse | 数据查询、报表生成、异常检测 |
+| **BI** | Webhook→Hooks | Metabase、Superset、FineBI | 报表推送、数据解读、趋势分析 |
+
+### 9.5 安全：数字员工的权限边界
+
+Agent 操作企业系统必须有严格的权限控制：
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  权限控制三层模型                       │
+├─────────────────────────────────────────────────────┤
+│                                                      │
+│  Layer 1: Agent 级权限（Tool Policy）                  │
+│  ┌─ HR Agent ─────────────────────────────────┐     │
+│  │ allow: [oa.submit_leave, oa.query_attendance]│     │
+│  │ deny:  [oa.delete_*, erp.*, crm.*]          │     │
+│  └─────────────────────────────────────────────┘     │
+│                                                      │
+│  Layer 2: 操作级权限（Exec Approvals）                  │
+│  ┌─ 高风险操作 ───────────────────────────────┐       │
+│  │ oa.approve_request → 需人类确认             │       │
+│  │ erp.create_order   → 金额>10万需审批        │       │
+│  │ crm.delete_customer → 永远禁止              │       │
+│  └────────────────────────────────────────────┘      │
+│                                                      │
+│  Layer 3: 数据级权限（MCP Server 侧）                   │
+│  ┌─ MCP Server 内置权限 ──────────────────────┐      │
+│  │ CRM MCP: Agent 只能看本区域客户数据          │      │
+│  │ HR MCP:  Agent 只能查询当事人的考勤          │      │
+│  │ ERP MCP: Agent 只能查询不能修改             │      │
+│  └────────────────────────────────────────────┘      │
+│                                                      │
+└─────────────────────────────────────────────────────┘
+```
+
+**关键原则**：
+
+1. **最小权限**：每个数字员工只能访问它需要的系统和操作
+2. **双重确认**：高风险操作需要 Agent 侧（Exec Approvals）+ 系统侧（OA 审批流）双重确认
+3. **数据隔离**：MCP Server 侧实现行级数据权限，Agent 拿不到不该看的数据
+4. **审计留痕**：每次系统操作记录在 Session Transcript 中，可追溯
+
+### 9.6 企业 MCP Server 开发指南（面向客户）
+
+帮助企业快速开发自己的 MCP Server：
+
+**标准化开发流程**：
+
+```
+Step 1: 梳理业务 API → 选择要暴露给 Agent 的操作
+Step 2: 开发 MCP Server → 封装 API 为 MCP 工具
+Step 3: 配置权限 → 定义每个工具的参数校验和权限检查
+Step 4: 接入 OpenClaw → 在 mcporter 配置中注册
+Step 5: 测试 → Agent 通过自然语言调用企业系统
+```
+
+**MCP Server 模板**（我方提供，降低客户开发成本）：
+
+| 模板 | 适用系统 | 预置工具数 |
+|------|---------|----------|
+| `mcp-template-rest` | 通用 REST API | 5 个 CRUD 工具 |
+| `mcp-template-database` | 数据库只读查询 | 3 个查询工具 |
+| `mcp-template-oa` | OA 审批类系统 | 8 个工具 |
+| `mcp-template-erp` | ERP 进销存类 | 10 个工具 |
+| `mcp-template-crm` | CRM 客户管理类 | 8 个工具 |
+
+---
+
+## 第十章：数字员工平台——完整产品定位
+
+### 10.1 从 Harness 平台到数字员工平台
+
+```
+Harness 平台（技术视角）           数字员工平台（业务视角）
+─────────────────────          ─────────────────────
+Agent Workspace       →        数字员工的岗位说明书
+Memory & Context      →        数字员工的工作经验
+Guardrails            →        数字员工的权限边界
+Orchestration         →        数字员工的协作机制
+Skill Marketplace     →        数字员工的技能培训
+MCP 系统集成           →        数字员工的工作工具
+多渠道通信             →        数字员工的沟通渠道
+私有化部署             →        数字员工在公司内办公
+```
+
+### 10.2 产品全景图
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│                    企业数字员工平台                                 │
+│              (Enterprise Digital Worker Platform)                 │
+│                                                                  │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─ 数字员工管理 ──────────────────────────────────────────────┐ │
+│  │                                                              │ │
+│  │  👤 HR 数字员工    👤 销售数字员工    👤 运维数字员工          │ │
+│  │  请假/考勤/入职    客户/商机/报表     告警/诊断/巡检          │ │
+│  │                                                              │ │
+│  │  👤 研发数字员工    👤 财务数字员工    👤 客服数字员工          │ │
+│  │  代码/项目/CI      报销/预算/对账     问答/工单/满意度        │ │
+│  │                                                              │ │
+│  └──────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  ┌─ 平台能力层 ────────────────────────────────────────────────┐ │
+│  │                                                              │ │
+│  │  🏗️ Workspace │ 🧠 Memory │ 🛡️ Guardrails │ 🎯 Orchestration│ │
+│  │  岗位说明书    │ 工作经验   │ 权限边界       │ 协作分工         │ │
+│  │                                                              │ │
+│  │  🧩 Skills    │ 🔌 MCP Hub │ 📊 Dashboard  │ 📋 Audit       │ │
+│  │  技能培训     │ 系统连接器  │ 监控报表       │ 审计合规        │ │
+│  │                                                              │ │
+│  └──────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  ┌─ 基础设施层 ────────────────────────────────────────────────┐ │
+│  │                                                              │ │
+│  │  💬 Multi-Channel      │  🤖 Multi-Model    │  🔒 Security  │ │
+│  │  飞书/钉钉/企微/Slack   │  私有/云端/混合      │  沙箱/审计/加密│ │
+│  │                                                              │ │
+│  └──────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  ┌─ 部署模式 ──────────────────────────────────────────────────┐ │
+│  │  全私有化（Air-Gapped） │ 混合部署（Hybrid） │ 托管（SaaS）    │ │
+│  └──────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 10.3 商业模式
+
+| 收入来源 | 说明 | 定价参考 |
+|---------|------|---------|
+| **平台许可费** | 按数字员工数量收费 | ¥500-2,000/数字员工/月 |
+| **私有化部署费** | 一次性部署 + 年维保 | ¥50-200 万（视规模） |
+| **MCP 连接器开发** | 帮客户对接内部系统 | ¥5-20 万/系统 |
+| **技能开发服务** | 定制行业 Skill | ¥2-10 万/Skill |
+| **培训与咨询** | 数字员工运营培训 | ¥1-5 万/次 |
+| **年度维保** | 升级 + 技术支持 | 许可费的 15-20% |
+
+### 10.4 更新后的落地路径
+
+```
+Phase 1（MVP，4-6 周）—— 核心平台
+├── Workspace + Memory + Guardrails 三大模块
+├── 飞书 + 钉钉渠道支持
+├── 1 个 MCP 模板（通用 REST API）
+├── 基础管理控制台
+└── Docker Compose 一键部署
+
+Phase 2（系统集成，4-6 周）—— 打通企业
+├── MCP Server Hub（连接器市场）
+├── OA / ERP / CRM 预置模板
+├── Orchestration + Skill Marketplace
+├── Webhook → Hooks 事件驱动
+└── 企业级 RBAC + SSO
+
+Phase 3（数字员工平台，持续）—— 规模化
+├── 数字员工管理界面（创建/配置/监控）
+├── 行业解决方案模板（金融/制造/互联网）
+├── Kubernetes 集群部署方案
+├── 审计报表 + 合规认证
+└── 数字员工运营数据分析
+```
+
+### 10.5 一句话总结
+
+> **企业版 OpenClaw = 企业数字员工的操作系统**
+>
+> 不是帮你搭一个聊天机器人，而是帮你的企业雇一支 **能操作内部系统、记得住工作经验、有明确权限边界、7×24 小时在线** 的数字员工团队。
+
+---
+
+*文档由 wairesearch (黄山) 生成 | 2026-03-26 | v1.1*
+*v1.0: 五大模块 + 市场定位 + 落地路径*
+*v1.1: + 私有化部署架构 + 企业系统集成 + 数字员工平台定位*
 *基于 Harness Engineering 深度分析报告 v1.1 + OpenClaw 源码研究 + 市场竞品分析*
