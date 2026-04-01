@@ -594,6 +594,476 @@ Gateway 定时器 tick
                └─ none → 仅记录
 ```
 
+---
+
+## 6A. 定时任务执行机制深度解析
+
+> 本节补充 Heartbeat、Cron、Webhook 三种自动化触发方式的完整内部执行链路。
+
+### 6A.1 Cron Scheduler 内部架构
+
+#### 定时器与调度循环
+
+```
+Gateway 启动
+    │
+    ▼
+┌─────────────────────────────────────────────────────────┐
+│  Cron Scheduler 初始化                                    │
+│  1. 加载 jobs.json (持久化存储)                           │
+│  2. runMissedJobs() — 启动追赶                           │
+│     ├─ 收集 nextRunAtMs ≤ now 的所有 job                 │
+│     ├─ 按 nextRunAtMs 排序                               │
+│     ├─ 立即执行 ≤ maxMissedJobsPerRestart                │
+│     └─ 超出的延迟执行（防止过载）                         │
+│  3. armTimer() — 设置下一个唤醒                           │
+└────────────────┬────────────────────────────────────────┘
+                 │
+                 ▼
+        ┌────────────────┐
+        │  setTimeout()   │  ← MAX_TIMER_DELAY_MS = 60s
+        │  (JS 定时器)    │     如果下次唤醒 > 60s，
+        │                 │     分多次 60s 跳转
+        └────────┬───────┘
+                 │ 定时器到期
+                 ▼
+┌─────────────────────────────────────────────────────────┐
+│  Timer Tick 处理                                         │
+│                                                          │
+│  1. locked(() => {                                       │
+│       ── normalizeJobTickState() ──                      │
+│       │  • 禁用的 job: 清除 nextRunAtMs/runningAtMs    │
+│       │  • 卡住的 job: runningAtMs > STUCK_RUN_MS      │
+│       │    → 清除 runningAtMs（解除死锁）               │
+│       │                                                  │
+│       ── collectDueJobs(now) ──                          │
+│       │  • 过滤 enabled && nextRunAtMs <= now            │
+│       │  • 过滤 !runningAtMs（跳过正在运行的）          │
+│       │  • MIN_REFIRE_GAP_MS = 2s（防止连续触发）       │
+│       │                                                  │
+│       ── 标记 runningAtMs = now ──                       │
+│       ── 持久化 jobs.json ──                             │
+│     })                                                   │
+│                                                          │
+│  2. 并发执行到期 jobs:                                    │
+│     pool = min(maxConcurrentRuns, dueJobs.length)        │
+│     await Promise.all(pool.map(executeJob))              │
+│                                                          │
+│  3. locked(() => {                                       │
+│       ── applyOutcomeToStoredJob() ──                    │
+│       │  • 更新 lastRunAtMs, lastStatus                 │
+│       │  • 管理 consecutiveErrors 计数                   │
+│       │  • 重新计算 nextRunAtMs                          │
+│       ── 持久化 jobs.json ──                             │
+│     })                                                   │
+│                                                          │
+│  4. sweepCronRunSessions()                               │
+│     • 在 locked() 外执行（避免锁顺序反转）              │
+│     • MIN_SWEEP_INTERVAL_MS = 5min（自限频）             │
+│     • 清理过期的 cron run sessions                       │
+│                                                          │
+│  5. armTimer() — 设置下一个唤醒                           │
+│     • nextWakeAtMs = min(所有 enabled job 的 nextRunAtMs) │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### 三种调度类型的时间计算
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ computeJobNextRunAtMs(job, now)                          │
+│                                                          │
+│ ┌───────────┐                                           │
+│ │ "at"       │ 一次性                                    │
+│ │            │ → schedule.atMs (ISO时间戳转换)            │
+│ │            │ → 如果已执行过: 返回 null（不再调度）      │
+│ └───────────┘                                           │
+│                                                          │
+│ ┌───────────┐                                           │
+│ │ "every"    │ 固定间隔                                  │
+│ │            │ → anchor = lastRunAtMs ?? createdAtMs      │
+│ │            │ → nextRun = anchor + schedule.intervalMs   │
+│ │            │ → 如果 nextRun <= now: 立即执行            │
+│ └───────────┘                                           │
+│                                                          │
+│ ┌───────────┐                                           │
+│ │ "cron"     │ Cron 表达式 (5/6 字段 + IANA 时区)       │
+│ │            │ → 解析 cron 表达式计算下次触发时间         │
+│ │            │ → + stagger offset (确定性偏移)           │
+│ │            │                                           │
+│ │  Stagger:  │ resolveStableCronOffsetMs(jobId)          │
+│ │            │ = SHA256(jobId) % staggerMs               │
+│ │            │ → 0~5min 窗口内的确定性偏移               │
+│ │            │ → LRU 缓存，避免重复 hash 计算            │
+│ │            │ → 目的: 整点任务分散执行，减少负载尖峰     │
+│ │            │ → 注意: 固定小时表达式不受 stagger 影响    │
+│ └───────────┘                                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Isolated Agent Turn 执行详情
+
+```
+runCronIsolatedAgentTurn(job, runId)
+    │
+    ▼
+┌─────────────────────────────────────────────────────────┐
+│ 1. Agent 解析                                            │
+│    agentId = job.payload.agentId ?? defaultAgentId        │
+│    加载 agent config                                      │
+│                                                          │
+│ 2. Session 创建                                          │
+│    sessionKey = "cron:<jobId>:run:<uuid>"                 │
+│    全新隔离 session，无历史上下文                          │
+│                                                          │
+│ 3. 模型解析链                                            │
+│    job.payload.model                                      │
+│    → agents.defaults.subagents.model                     │
+│    → hooks.gmail.model (如来自 Gmail)                    │
+│    → agents.list[agentId].model                          │
+│    → agents.defaults.model.primary                       │
+│                                                          │
+│ 4. 思考级别解析                                          │
+│    job.payload.thinking                                   │
+│    → hooks.gmail.thinking                                │
+│    → model catalog defaults                              │
+│    → 如果模型不支持 xhigh，自动降级                      │
+│                                                          │
+│ 5. 安全包装                                              │
+│    if (!allowUnsafeExternalContent) {                     │
+│      prompt = wrapWithSafetyBoundary(job.payload.command)│
+│    }                                                      │
+│    // 防止外部 hook 内容（如 Gmail 邮件体）               │
+│    // 的 prompt injection                                 │
+│                                                          │
+│ 6. 投递上下文解析                                        │
+│    target = job.payload.delivery                          │
+│    ├─ channel: 目标渠道 (telegram/whatsapp/last/...)     │
+│    ├─ to: 目标 ID                                        │
+│    └─ accountId: 多账号时指定                             │
+│    工具策略:                                              │
+│    ├─ requireExplicitMessageTarget = true                 │
+│    └─ disableMessageTool = !delivery.enabled              │
+│                                                          │
+│ 7. Session 预持久化                                      │
+│    写入 session entry (model, provider, systemSent)       │
+│    注册 run context 用于日志                               │
+│                                                          │
+│ 8. 执行                                                  │
+│    result = runWithModelFallback({                        │
+│      prompt: 包装后的命令,                                │
+│      model: 解析后的模型,                                 │
+│      thinking: 解析后的级别,                              │
+│      abortSignal: AbortController (超时控制)              │
+│    })                                                     │
+│                                                          │
+│ 9. 中间确认检测                                          │
+│    if (isLikelyInterimCronMessage(result)) {             │
+│      // Agent 只是说"好的我来做" 但没有实际完成            │
+│      // → 重新 prompt 要求完成任务                       │
+│    }                                                      │
+│                                                          │
+│ 10. 投递                                                 │
+│     ├─ announce:                                         │
+│     │  → 直接发送到目标渠道                               │
+│     │  → 同时在主 session 写入摘要                        │
+│     │  → 去重: 如果 isolated run 已经发过同目标，跳过    │
+│     ├─ webhook:                                          │
+│     │  → HTTP POST 到配置的 URL                          │
+│     │  → payload: { jobId, status, result, usage }       │
+│     └─ none:                                             │
+│        → 仅记录到 run log，不对外投递                     │
+│                                                          │
+│ 11. 返回                                                 │
+│     { sessionId, sessionKey, status, error }              │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### 重试与退避策略
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 错误分类:                                                │
+│                                                          │
+│ TRANSIENT_PATTERNS (正则匹配):                           │
+│   rate_limit | overloaded | network | timeout |          │
+│   server_error | 5xx                                     │
+│                                                          │
+│ Permanent errors (其他所有):                              │
+│   auth_error | validation_error | ...                    │
+│                                                          │
+│ ─── One-shot Job ("at" 类型) ───                         │
+│                                                          │
+│   Transient: 最多 3 次重试                                │
+│     attempt 1 → wait 30s → retry                         │
+│     attempt 2 → wait 1min → retry                        │
+│     attempt 3 → wait 5min → retry                        │
+│     attempt 4 → 放弃，标记失败                            │
+│                                                          │
+│   Permanent: 立即禁用 job                                 │
+│                                                          │
+│ ─── Recurring Job ("every"/"cron" 类型) ───              │
+│                                                          │
+│   Transient: 指数退避 + 正常调度继续                       │
+│     error 1  → backoff 30s  → 正常下次调度               │
+│     error 2  → backoff 1min → 正常下次调度               │
+│     error 3  → backoff 5min                              │
+│     error 4  → backoff 15min                             │
+│     error 5+ → backoff 60min (上限)                      │
+│     success  → 重置 consecutiveErrors = 0                │
+│                                                          │
+│   Permanent: 立即禁用 job                                 │
+│                                                          │
+│ ─── Schedule Compute Error ───                           │
+│   (Cron 表达式解析失败等)                                  │
+│   scheduleErrorCount++                                    │
+│   if (≥ MAX_SCHEDULE_ERRORS = 3) {                       │
+│     禁用 job                                              │
+│     enqueueSystemEvent("Cron job disabled: ...")         │
+│     requestHeartbeat() // 通知用户                        │
+│   }                                                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### Session 清理（Reaper）
+
+```
+sweepCronRunSessions()  ← 每次 timer tick 后调用
+    │
+    ├─ 自限频: 距上次 sweep < 5min → 跳过
+    │
+    ├─ 遍历 session store:
+    │  └─ 匹配 key 格式 "cron:<jobId>:run:<uuid>"
+    │     └─ updatedAt + retentionMs < now → 标记清理
+    │        retentionMs = cron.sessionRetention (默认 24h)
+    │
+    ├─ 归档 transcript 文件
+    │  └─ 移到归档目录
+    │
+    ├─ 清理过期归档
+    │  └─ 归档时间 + retentionMs < now → 删除
+    │
+    └─ 返回 { swept, pruned }
+
+Run Log 清理:
+    文件: ~/.openclaw/cron/runs/<jobId>.jsonl
+    ├─ 超过 maxBytes (默认 2MB) → 截断
+    └─ 保留最新 keepLines (默认 2000) 行
+```
+
+#### 持久化与文件布局
+
+```
+~/.openclaw/
+├── cron/
+│   ├── jobs.json                      ← Job 定义 + 状态
+│   │   {
+│   │     "<jobId>": {
+│   │       id, schedule, payload, enabled,
+│   │       nextRunAtMs,              // 下次执行时间
+│   │       runningAtMs,              // 正在运行标记
+│   │       lastRunAtMs,              // 上次执行时间
+│   │       lastStatus,               // "ok" | "error"
+│   │       consecutiveErrors,        // 连续错误计数
+│   │       scheduleErrorCount,       // 调度计算错误计数
+│   │       createdAtMs,              // 创建时间
+│   │     }
+│   │   }
+│   └── runs/
+│       └── <jobId>.jsonl             ← 运行历史日志
+│           每行: { runId, startedAt, endedAt, status, error?, usage? }
+│
+└── agents/<agentId>/sessions/
+    └── <cron:jobId:run:uuid>.jsonl   ← 隔离 session transcript
+```
+
+---
+
+### 6A.2 Heartbeat 执行详情
+
+```
+Gateway Heartbeat 定时器
+    │
+    ▼
+┌─────────────────────────────────────────────────────────┐
+│ Heartbeat 检查                                           │
+│                                                          │
+│ 1. 触发间隔:                                             │
+│    agents.defaults.heartbeat.every (默认 30min)           │
+│    Anthropic OAuth/setup-token: 默认 60min               │
+│                                                          │
+│ 2. 前置检查:                                             │
+│    ├─ activeHours 窗口检查（如配置）                      │
+│    ├─ 主 session 是否忙碌？                               │
+│    │   └─ 忙碌 → 跳过，下次重试                          │
+│    └─ 上次心跳是否太近？                                  │
+│                                                          │
+│ 3. Prompt 构建:                                          │
+│    默认 prompt:                                           │
+│    "Read HEARTBEAT.md if it exists (workspace context).  │
+│     Follow it strictly. Do not infer or repeat old tasks │
+│     from prior chats. If nothing needs attention,        │
+│     reply HEARTBEAT_OK."                                  │
+│    可通过 heartbeat.prompt 自定义                          │
+│                                                          │
+│ 4. 在主 Session 中执行 Agent Turn                        │
+│    ├─ 有完整 session 上下文                               │
+│    ├─ 可访问工具                                          │
+│    └─ lightContext 选项（减少注入的上下文量）              │
+│                                                          │
+│ 5. 响应处理:                                             │
+│    response.startsWith("HEARTBEAT_OK")?                   │
+│    ├─ 是 + 剩余 ≤ ackMaxChars (默认 300):               │
+│    │   → 静默（NO_REPLY 语义）                           │
+│    │   → showOk=true 才会展示                             │
+│    │                                                      │
+│    └─ 否（有实质内容）:                                   │
+│        → 按 target 投递:                                  │
+│          ├─ "last" → 最近活跃的渠道/联系人                │
+│          ├─ "none" → 不投递（仅日志）                     │
+│          ├─ 指定 channel + to → 精确投递                  │
+│          └─ directPolicy: allow|block → DM 控制          │
+│                                                          │
+│ 6. 配置优先级:                                           │
+│    agents.defaults.heartbeat  (基础)                      │
+│    → agents.list[].heartbeat  (Agent 级覆盖)             │
+│    → channels.defaults.heartbeat                         │
+│    → channels.<channel>.heartbeat                        │
+│    → channels.<channel>.accounts.<id>.heartbeat          │
+│                                                          │
+│ 7. 可见性控制:                                           │
+│    showOk: 是否展示 HEARTBEAT_OK 响应                     │
+│    showAlerts: 是否展示告警                                │
+│    useIndicator: 是否使用 typing 指示器                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Heartbeat vs Cron 执行差异**：
+
+| 维度 | Heartbeat | Cron (isolated) |
+|------|-----------|-----------------|
+| **Session** | 主 session（有完整上下文） | 隔离 session（无历史） |
+| **定时精度** | 近似（忙则跳过+重试） | 精确（stagger 最多 5min） |
+| **上下文** | 有完整对话历史+workspace | 仅 job payload 命令 |
+| **模型** | 默认或 heartbeat.model | job 级可覆盖 |
+| **重试** | 无（跳过即丢失） | 指数退避重试 |
+| **通知** | HEARTBEAT_OK 静默 | announce/webhook/none |
+| **用途** | 巡检、提醒、上下文感知任务 | 精确定时、后台任务、隔离执行 |
+
+---
+
+### 6A.3 Webhook 执行详情
+
+```
+外部系统
+    │
+    ▼
+POST /hooks/wake
+POST /hooks/agent
+POST /hooks/<name>  (mapped)
+    │
+    ▼
+┌─────────────────────────────────────────────────────────┐
+│ Webhook Ingress                                          │
+│                                                          │
+│ 1. 认证:                                                │
+│    ├─ Authorization: Bearer <token>                      │
+│    ├─ x-openclaw-token: <token>                         │
+│    └─ ❌ ?token= 查询参数 → 400 拒绝                    │
+│    失败: 401 + IP 级速率限制 (429 + Retry-After)         │
+│                                                          │
+│ 2. 路由:                                                │
+│                                                          │
+│    ┌─── /hooks/wake ───┐                                │
+│    │ 轻量唤醒:          │                                │
+│    │ • 入队系统事件到主 session                           │
+│    │ • mode: "now" → 立即心跳                            │
+│    │ • mode: "next-heartbeat" → 下次心跳处理             │
+│    │ • 返回 200                                          │
+│    └────────────────────┘                                │
+│                                                          │
+│    ┌─── /hooks/agent ───┐                               │
+│    │ 隔离执行:           │                                │
+│    │ • 解析 agentId (allowedAgentIds 白名单)             │
+│    │ • sessionKey:                                        │
+│    │   ├─ 默认: hooks.defaultSessionKey                  │
+│    │   ├─ 请求覆盖: 需 allowRequestSessionKey=true       │
+│    │   └─ 前缀限制: allowedSessionKeyPrefixes            │
+│    │ • 安全包装:                                          │
+│    │   ├─ 默认: 用 safety boundary 包裹 message          │
+│    │   └─ allowUnsafeExternalContent=true: 跳过          │
+│    │ • 执行 isolated agent turn                          │
+│    │ • 主 session 写入摘要                                │
+│    │ • deliver=true: 按 channel/to 投递                  │
+│    │ • 返回 200 (异步执行已接受)                          │
+│    └────────────────────┘                                │
+│                                                          │
+│    ┌─── /hooks/<name> ───┐                              │
+│    │ Mapped Hook:         │                              │
+│    │ • hooks.mappings 路由                                │
+│    │ • hooks.presets (如 "gmail")                         │
+│    │ • match.source 基于 payload 路由                     │
+│    │ • transform.module 自定义 JS/TS 转换                │
+│    │ • 转换为 wake 或 agent action 后执行                │
+│    └────────────────────┘                                │
+│                                                          │
+│ 3. 安全:                                                │
+│    ├─ hooks.token ≠ gateway.auth.token（分离凭证）       │
+│    ├─ 推荐: 专用 hook agent + 严格 tools.profile         │
+│    ├─ hook payload 视为不可信内容                          │
+│    └─ IP 级认证失败速率限制                               │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 6A.4 三种自动化方式的选择决策树
+
+```
+                    需要自动化执行？
+                         │
+              ┌──────────┴──────────┐
+              │                      │
+        内部定时触发？           外部系统触发？
+              │                      │
+              │                      ▼
+              │                  Webhook
+              │                  /hooks/wake 或 /hooks/agent
+              │
+        ┌─────┴─────┐
+        │             │
+   需要上下文？    需要精确定时？
+   需要巡检？      需要隔离？
+        │             │
+        ▼             ▼
+    Heartbeat      Cron Job
+    (主session)    (隔离session)
+
+组合使用最佳实践:
+┌─────────────────────────────────────────────────┐
+│ Heartbeat: 每 30min 巡检                         │
+│   → 读取 HEARTBEAT.md 检查清单                   │
+│   → 检查系统状态、待处理事项                      │
+│   → 利用完整上下文做感知判断                      │
+│                                                  │
+│ Cron (isolated): 每天 9:00 生成日报               │
+│   → 精确定时，不依赖 session 状态                 │
+│   → announce 到 Telegram                         │
+│   → 即使 session 忙碌也不跳过                     │
+│                                                  │
+│ Cron (main): 每小时检查 CI 状态                   │
+│   → 注入系统事件到主 session                      │
+│   → 下次心跳或用户消息时 Agent 看到并处理         │
+│   → 不产生独立 session 开销                       │
+│                                                  │
+│ Webhook: GitHub push → 触发代码审查               │
+│   → 外部 CI 完成后 POST /hooks/agent             │
+│   → 隔离执行，结果投递到团队频道                  │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
 #### Sub-agent（子 Agent）
 ```
 父 Agent 调用 sessions_spawn({ task, runtime: "subagent" })
