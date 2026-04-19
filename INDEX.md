@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-04-19
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [AWS Bedrock 顶级 LLM 决策清单](research/2026-04-19-aws-bedrock-top-models.md) | research | 黄山(卷王) | Top 8 模型对比 + 场景推荐矩阵 + 价格陷阱；含 Opus 4.7 / Nova 2 Lite / Llama 4 Scout 最新数据 |
+
 ## 2026-04-15
 
 | 文件 | 目录 | 产出人 | 说明 |
