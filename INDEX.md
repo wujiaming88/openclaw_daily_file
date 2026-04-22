@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-04-22
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [Hermes Agent 自动 Skill 创建机制深度研究](research/2026-04-22-hermes-agent-skill-creation-deep-research.md) | research | 黄山 | 源码级分析 skill_manage 实现 + 三层记忆架构 + GEPA Self-Evolution + Periodic Nudge 机制 + OpenClaw 对比与移植方案 |
+
 ## 2026-04-19
 
 | 文件 | 目录 | 产出人 | 说明 |
