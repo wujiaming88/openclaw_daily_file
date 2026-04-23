@@ -365,6 +365,92 @@ Tool call stuck 是 AI Agent 领域的普遍问题，没有框架完美解决。
 | 4 | 部署 Watchdog 脚本 | cron | stuck 自动检测 + 告警 |
 | 5 | 手动恢复 SOP | 文档 | 标准化排查流程 |
 
+### 手动恢复 SOP（Stuck Session 排查与恢复标准操作流程）
+
+#### Step 1：确认 stuck
+
+```bash
+# 查看所有 session 状态
+openclaw session list --json | jq '.[] | select(.status == "running") | {id, sessionKey, lastActivity, updatedAt}'
+
+# 看哪个 session 长时间无活动
+# lastActivity 距当前时间 > 10 分钟且 status=running → 疑似 stuck
+```
+
+#### Step 2：查看日志确认卡在哪
+
+```bash
+# 实时日志
+openclaw logs --follow
+
+# 搜索 tool 相关错误
+openclaw logs | grep -i "tool\|timeout\|error\|stuck\|abort" | tail -30
+```
+
+**常见卡点判断**：
+- 日志有 `tool start` 无 `tool end` → 工具执行挂起
+- 日志有 `stream start` 无 token 输出 → LLM 流挂起
+- 日志无任何输出 → session lane 被占，可能死锁
+
+#### Step 3：恢复操作
+
+```bash
+# 方式 1：kill 指定 session（推荐，精准）
+openclaw session kill <session-id>
+
+# 方式 2：用户侧发 /kill 命令（如果消息通道还能用）
+/kill
+
+# 方式 3：重置 session（丢失当前会话历史）
+/reset
+
+# 方式 4：重启 Gateway（最后手段，影响所有 session）
+openclaw gateway restart
+```
+
+#### Step 4：检查残留
+
+```bash
+# 检查 .lock 文件残留
+find ~/.openclaw -name "*.lock" -mmin +30 -ls
+
+# 如有过期 lock，手动清理
+find ~/.openclaw -name "*.lock" -mmin +30 -delete
+
+# 确认 session 已恢复
+openclaw session list
+```
+
+#### Step 5：记录事故
+
+记录到运维日志：
+- 时间
+- 卡死的 session（id + agent）
+- 卡死原因（工具挂起 / LLM 挂起 / 其他）
+- 恢复方式
+- 是否需要后续改进
+
+#### 速查决策树
+
+```
+session 无响应
+  │
+  ├─ 能发消息？ → 发 /kill
+  │
+  ├─ 不能发消息？
+  │   ├─ 知道 session id → openclaw session kill <id>
+  │   └─ 不知道 → openclaw session list 找到后 kill
+  │
+  ├─ kill 无效？
+  │   ├─ 检查 .lock 残留 → 清理
+  │   └─ 仍无效 → openclaw gateway restart
+  │
+  └─ 频繁发生？
+      ├─ 检查 agent timeout 配置
+      ├─ 开启 loop detection
+      └─ 部署 watchdog 脚本
+```
+
 ### 提 PR（推动源码改进）
 
 | # | 动作 | 改动量 | 优先级 |
