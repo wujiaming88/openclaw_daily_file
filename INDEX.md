@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-04-27
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [Gemini Enterprise Agent Platform 深度研究](research/2026-04-27-gemini-enterprise-agent-platform.md) | research | 黄山 | 7维全面分析：架构演进(Vertex AI→Agent Platform)、核心能力、ADK 2.0、5大竞品矩阵、定价详解、12+客户案例、Cloud Next 2026最新发布 |
+
 ## 2026-04-22
 
 | 文件 | 目录 | 产出人 | 说明 |
