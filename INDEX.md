@@ -9,6 +9,7 @@
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
 | [SpaceX IPO 深度解读报告](business/2026-06-05-spacex-ipo-deep-analysis.md) | business | 黄山+小帅 | 史上最大 IPO 全景拆解：基于 SEC S-1 原文一手数据。$1.69 万亿估值/$750 亿募资/马斯克 82.4% 投票权/Starlink 1030万用户 ARPU 拆解/累计赤字 $413 亿；含 AI 转向研判(xAI/Grok 并表+Cursor $600亿期权+卖算力给 Anthropic)、沙特阿美/英伟达对标、7 大风险、投资视角；9 节完整 |
+| [全球 AI 动态周报（05-24~05-30）](research/2026-06-05-global-ai-weekly.md) | research | 黄山×4+小帅 | 首期 AI 周报：38 主体分 4 组并行深研，覆盖大模型/垂直Agent/中国AI/框架工具/算力硬件/具身机器人。TOP5：Claude Opus 4.8、Gemini Omni Flash、NVIDIA 台湾1500亿、国产AI上市潮(MiniMax/智谱)、Figure 零售商单；61 条原文链接，严格时间窗校验 |
 
 ## 2026-06-02
 
