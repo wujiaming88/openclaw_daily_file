@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-06-09
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [Harness Engineering 深度研究](research/2026-06-09-harness-engineering-deep-research.md) | research | 黄山+小帅 | 「Agentic Coding 工作机制」系列硬核篇。本质：Agent = Model + Harness，harness 给模型建闭环工作系统。三篇一手原文精华：OpenAI(5个月0行手写代码/Codex写100万行1500PR/人掌舰Agent执行)、Anthropic两篇(长程Agent轮班制失忆/两大死法:一口气做完+过早宣胜/Initializer+Coding+Evaluator三Agent架构/feature list用JSON不用MD)。震撼实测:同Opus 4.5裸跑20min不能用 vs 套harness 6h完全可玩。六大机制(环境/状态/验证/控制/可观测/防过早宣胜)。walkinglabs课程评测(learn-8k★/awesome-3k★ GitHub实查)。概念关系网(与context engineering谁包含谁有争)。趋势:后提示词时代核心范式但是过渡期范式 |
+| [WTF Is a Loop？论战拆解](research/2026-06-09-loop-debate-deep-research.md) | research | 黄山+小帅 | 「Agentic Coding 工作机制」系列故事篇。拆解2026年6月初AI coding圈最火的loop之争。导火索:@steipete(Peter Steinberger,OpenClaw之父/2026年2月加入OpenAI)一条4.7M浏览爆款推文「designing loops that prompt your agents」刷屏。争论本质=术语坤塌(loop三层含义:内层agentic loop/外层编排loop/元层harness,各说各话)。两派:极简派(Steinberger)vs工程派(Boris Cherny,Claude Code之父/已回归Anthropic)。人物身份+言论严格取证(Steinberger推文逐字核实/Cherny阶梯二手转述标注存疑/Van Horn长文未取到均如实声明)。与Harness篇互为镜像 |
+
 ## 2026-06-08
 
 | 文件 | 目录 | 产出人 | 说明 |
