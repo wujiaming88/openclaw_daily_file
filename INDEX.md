@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [Agent Client Protocol (ACP) 深度研究](research/2026-06-08-acp-deep-research.md) | research | 黄山+小帅 | Zed 主导的开源协议深挖：「AI 编码 Agent 时代的 LSP」。命名陷阱厘清(Agent_Client_Protocol vs IBM Agent_Communication_Protocol，后者已并入A2A)；技术架构(JSON-RPC over stdio+子进程模型+权限请求一等公民原语+复用MCP的JSON表示)；GitHub实况(主仓3342★/Rust/Apache-2.0/周更release/迁入中立组织/5语言SDK，2026-06-08 API实查)；生态采用(Zed/Neovim/JetBrains × Claude Code/Gemini CLI/Codex/Goose 17+)；与MCP/A2A/LSP横向对比表(MCP给工具·A2A给协作者·ACP给用户)；HN/Reddit社区评价；趋势研判(大概率成开放编辑器阵营事实标准，变量=VS Code/微软态度+远程能力)；8维度全覆盖+来源附录 |
 | [全球 AI Agent 周报（06-01~06-07）](research/2026-06-08-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 首期 Agent 专题周报：28 个 Agent 对象分 4 组并行深研（编码CLI/通用框架/垂直企业/浏览器操作+中国），实质覆盖 28/28（100%）。TOP5：Cognition Devin Desktop+ACP开放协议、微软基于OpenClaw推出Scout、LangChain Interrupt+MS Build双会、中国Agent集体爆发(扣子3.0/Kimi Work/Qwen-VLA)、Token经济学成第一性约束；学术/工程/商业三维度覆盖，原文全文阅读+链接齐备，严格时间窗校验 |
 
 ## 2026-06-07
