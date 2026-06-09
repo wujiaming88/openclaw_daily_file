@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [全球 AI 投资研究周报（06-02~06-08）](research/2026-06-09-global-ai-investment-weekly.md) | research | 黄山×4+小帅 | 首期投资视角周报：产业链自底向上 5 层（能源/基础设施/芯片存储/模型框架/应用商业化）+ 4 横切（政策/国资/资金/人才）全覆盖。五维质量门控全过（覆盖≥8成·原文抽查5/5·政策均读原文·收敛层齐·数据全有源）。TOP5：Anthropic/OpenAI 先后机密递表 IPO（估值逼万亿）、DeepSeek 首轮融资 74 亿美元（宁德入局）、存储超级周期三重确认、博通 ASIC +143%、电力成 AI 第一约束（聚变/液冷融资爆发）；so what 收敛层给出产业链传导链 + 资本流向 + 一级机会风险 + 领先指标 |
 | [Harness Engineering 深度研究](research/2026-06-09-harness-engineering-deep-research.md) | research | 黄山+小帅 | 「Agentic Coding 工作机制」系列硬核篇。本质：Agent = Model + Harness，harness 给模型建闭环工作系统。三篇一手原文精华：OpenAI(5个月0行手写代码/Codex写100万行1500PR/人掌舰Agent执行)、Anthropic两篇(长程Agent轮班制失忆/两大死法:一口气做完+过早宣胜/Initializer+Coding+Evaluator三Agent架构/feature list用JSON不用MD)。震撼实测:同Opus 4.5裸跑20min不能用 vs 套harness 6h完全可玩。六大机制(环境/状态/验证/控制/可观测/防过早宣胜)。walkinglabs课程评测(learn-8k★/awesome-3k★ GitHub实查)。概念关系网(与context engineering谁包含谁有争)。趋势:后提示词时代核心范式但是过渡期范式 |
 | [WTF Is a Loop？论战拆解](research/2026-06-09-loop-debate-deep-research.md) | research | 黄山+小帅 | 「Agentic Coding 工作机制」系列故事篇。拆解2026年6月初AI coding圈最火的loop之争。导火索:@steipete(Peter Steinberger,OpenClaw之父/2026年2月加入OpenAI)一条4.7M浏览爆款推文「designing loops that prompt your agents」刷屏。争论本质=术语坤塌(loop三层含义:内层agentic loop/外层编排loop/元层harness,各说各话)。两派:极简派(Steinberger)vs工程派(Boris Cherny,Claude Code之父/已回归Anthropic)。人物身份+言论严格取证(Steinberger推文逐字核实/Cherny阶梯二手转述标注存疑/Van Horn长文未取到均如实声明)。与Harness篇互为镜像 |
 
