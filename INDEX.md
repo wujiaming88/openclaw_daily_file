@@ -9,6 +9,7 @@
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
 | [Amazon Bedrock AgentCore 全景深度研究](research/2026-06-11-amazon-bedrock-agentcore.md) | research | 黄山+小帅 | AWS 押注 Agent 时代的「水电煤」serverless 底座深度拆解：定位/七大组件（Runtime/Memory/Gateway/Identity/Browser/Code Interpreter/Observability）/框架与模型中立性/MCP+A2A 协议生态/企业级安全/12 组件 consumption-based 定价/竞品横评（vs LangGraph、OpenAI Agents SDK、Vertex Agent Engine、Azure AI Foundry、Cloudflare）/实战代码骨架/趋势研判。GitHub 实测（2026-06-11）：strands harness-sdk 6098★、agentcore-samples 3046★、SDK 720★。核心判断：AWS 用「卖铲子」战略复刻 Lambda 剧本，赌所有 Agent 最终都要落到企业级运行时上付费——对 LangChain 类中间层是降维平台化（不竞争而托管之）。差异化优势=microVM 物理隔离+8 小时超长运行+真模型中立（含 OpenAI/Gemini）；最大短板=12 组件计费复杂、Observability 易超支 |
+| [现在可以合上笔记本了：深度解读 AWS 在 AgentCore 上托管 Coding Agent](research/2026-06-11-coding-agents-on-agentcore.md) | research | 黄山+小帅 | 深度解读 AWS ML Blog《It's safe to close your laptop now》官方实战长文。核心叙事：开发者不敢合笔记本(合盖=杀死里面跑的 coding agent)→ 笔记本从来是「最近」不是「最对」的宿主。拆解：①笔记本是错宿主的4条(爆炸半径=整机/密钥贴着代码/git worktree只是半个补丁/盖子=物理kill switch)②Runtime=每session独立Firecracker microVM③四能力(持久/mnt/workspace保留14天+真交互shell agentcore exec --it+应用层确定性命令绕过LLM+BYO文件系统S3/EFS挂载)④Identity+Gateway三种凭证模式(bot/on-behalf-of RFC8693/broker)+VPC网络层杀数据外泄⑤四agent竞速实测(Claude Code-Opus4.8/Codex-GPT5.5/Kiro-auto/Hermes-Llama4)Race/Bench/Watch三实验⑥客户实证(TR CoCounsel/Cox 17agent/Druva 8-10安全agent/TR平台15x)。判断:三件套(物理隔离+凭证外置+VPC管控)是本地harness最难自建部分;与我们小帅+五岳多agent架构高度同构,AgentCore把这套做成AWS托管商品 |
 
 ## 2026-06-10
 
