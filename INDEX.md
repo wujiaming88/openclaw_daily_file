@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-06-11
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [Amazon Bedrock AgentCore 全景深度研究](research/2026-06-11-amazon-bedrock-agentcore.md) | research | 黄山+小帅 | AWS 押注 Agent 时代的「水电煤」serverless 底座深度拆解：定位/七大组件（Runtime/Memory/Gateway/Identity/Browser/Code Interpreter/Observability）/框架与模型中立性/MCP+A2A 协议生态/企业级安全/12 组件 consumption-based 定价/竞品横评（vs LangGraph、OpenAI Agents SDK、Vertex Agent Engine、Azure AI Foundry、Cloudflare）/实战代码骨架/趋势研判。GitHub 实测（2026-06-11）：strands harness-sdk 6098★、agentcore-samples 3046★、SDK 720★。核心判断：AWS 用「卖铲子」战略复刻 Lambda 剧本，赌所有 Agent 最终都要落到企业级运行时上付费——对 LangChain 类中间层是降维平台化（不竞争而托管之）。差异化优势=microVM 物理隔离+8 小时超长运行+真模型中立（含 OpenAI/Gemini）；最大短板=12 组件计费复杂、Observability 易超支 |
+
 ## 2026-06-10
 
 | 文件 | 目录 | 产出人 | 说明 |
