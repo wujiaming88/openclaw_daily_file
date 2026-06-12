@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-06-12
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [AI Agent 沙箱（Sandbox）技术体系全景研究](research/2026-06-12-ai-agent-sandbox-research.md) | research | 黄山+小帅 | AI Agent 沙箱技术体系深度研究（面向技术决策者·约1.2万字）。核心论点：沙箱把 Agent 的「意图信任」问题转化为「边界强制」问题——LLM 输出是不可信代码，必须隔离执行。2026 格局两条主线：①本地 Coding Agent（Codex/Claude Code/OpenClaw）走 OS 原语轻量隔离（macOS Seatbelt + Linux Landlock/seccomp/bubblewrap + 网络代理白名单 + approval）开销近零；②云端沙箱即服务（E2B/Modal/Daytona/Cloudflare/Northflank）走轻量级虚拟化（Firecracker microVM/gVisor）~150ms 冷启动+多租户隔离。选型判据=跑自己代码用 OS 原语/跑不可信代码必上 microVM（容器共享内核已知不充分）。覆盖：演进史(chroot→Docker→gVisor/Firecracker→Agent原生)+七类底层技术原理(seccomp/namespaces/Landlock/Seatbelt/容器/microVM/WASM/浏览器/网络出口/文件系统)+权衡对比表+主流方案横评(Codex源码级/Claude Code srt/OpenClaw信任模型/Google ADK/E2B等18对象)+对比矩阵+现状研判(Firecracker为何成事实标准)+未来(机密计算SEV/TDX+MCP时代WASM工具隔离+沙箱标准化)。5条洞察：跨公司架构趋同是正确路线信号/OS原语syscall层不懂应用语义必走混合架构/Firecracker独占强隔离+低启动+高密度三角/OpenClaw个人助理信任模型与E2B多租户SaaS是两种产品形态/没有银弹(微架构侧信道+policy易写错)。已发布博客 |
+
+---
+
 ## 2026-06-11
 
 | 文件 | 目录 | 产出人 | 说明 |
