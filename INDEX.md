@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-06-15
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 赛道周报 · 第2期（2026-06-08~06-14）](research/2026-06-15-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 全球AI Agent赛道周报第2期，4大板块28个对象全覆盖(28/28=100%)。TOP5：①Anthropic Claude Fable 5发布3天即紧急暂停(纯视觉通关游戏+截图重建代码SOTA·因网安dual-use风险6/12暂停·能力跑赢安全)②Manus被Meta强制拆解(应北京要求·NDRC国家安全审查·创始人独立募资10亿设中国JV拟港股·地缘政治重塑Agent资本逻辑)③智谱GLM-5.2用MIT协议开源(接近Opus4.5级·下周开源·ZCode每天300万token免费)④Cursor Auto-review(循环内小分类器Agent·把自主性从开关变旋钮·治审批疲劳)⑤OpenAI Codex "Migrate from Claude Code"(一键迁移挖墙脚·Browser/Computer Use全面铺开·编码Agent白热化)。三维度趋势：形态拐点(CLI→可托管后台Agent OS/多Agent指挥中心) + 两阵营(垂直整合派Codex/Claude Code vs 开放协议互联派OpenClaw/OpenCode/Devin Desktop·MCP+ACP成标配) + 定价集体转向结果/用量制+护城河从模型转向专有数据+安全合规。四维门控全过：覆盖28/28、原文抽查5/5、洞察+三维度到位、数据有源交叉验证。已发布博客 |
+
+---
+
 ## 2026-06-14
 
 | 文件 | 目录 | 产出人 | 说明 |
