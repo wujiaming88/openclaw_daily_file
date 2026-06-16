@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [代表性 Agent Harness 的「自动上下文压缩」机制深度研究](research/2026-06-16-agent-context-compaction.md) | research | 黄山+小帅 | 从 harness engineering 出发，理论×架构×工程三层深挖 Codex CLI / Claude Code / OpenCode / Hermes Agent 的自动上下文压缩机制（+5 个加分对象 Gemini CLI/Cline/Goose/Aider/框架原语）。本地 clone codex/opencode/hermes-agent 三仓库逐行读源码（小帅实地抽验 4 处源码声明 100% 命中：`openai_models.rs:433` 的 `(ctx*9)/10`、`context_compressor.py:145` 的 `_SUMMARY_RATIO=0.20`、`compaction.ts:38` 的 `PRUNE_MINIMUM=20K`、`client.rs:152` 的 `/responses/compact`）。5 大发现：①「精准遗忘」是 2026 共识 ②成本阶梯铁律（零成本本地规则→缓存友好→最后才用昂贵有损 LLM 摘要）③缓存经济学是隐形第一性原理（删尾不删头为保 Prompt Cache 前缀·删头付 1.25× 重写费）④学术层(StreamingLLM/H2O/LLMLingua 攻 KV/token 层)vs 工程层(全在消息编排层·把 attention sink 朴素复刻为保护首尾消息)几乎不交叉 ⑤路线分化：Codex/Claude 不可逆摘要 vs OpenCode 时间戳隐藏(可回溯) vs Hermes 可插拔无损 LCM 引擎(前沿)。含 12 维×5 对象对比表 + 7 类压缩策略分类学 + MemGPT/StreamingLLM/LLMLingua 论文精读 + 逐对象源码剖析。四维质量门控全过。已发布博客 |
 | [全球 AI 投资研究周报 · 第2期（2026-06-09~06-15）](research/2026-06-16-global-ai-investment-weekly.md) | research | 黄山×4+小帅 | 投资视角周报第2期：产业链自底向上 5 层 + 4 横切全覆盖（~43/47 主题≈91%）。五维质量门控全过（覆盖≈91%·原文抽查5/5·政策3篇均读原文摘条款·收敛层五项齐·数据全有源）。TOP5（按决策信号价值排序）：①国家大基金洽谈领投 DeepSeek（450 亿美元·国资从补芯片升级到持模型）②美国出口管制「从芯片爬升到模型」（Anthropic Fable 5/Mythos 5 全球下架·监管首入软件API层）③KKR/Nvidia/Vistra/科威特推出 Helix Digital（>100 亿美元·电力一体化平台化拐点）④Oracle RPO 6380 亿但>50%来自 OpenAI+FCF -237 亿（AI capex 回报周期拐点）⑤SpaceX 含 xAI 史上最大 IPO（募资 750 亿·首日市值 2.1 万亿·一级转二级）。so what 收敛层：两条传导链（地缘→国产化、电力→证券化）+ 景气信号 + 资本流向 + 一级机会风险 + 4 个领先指标。已发布博客 |
 
 ---
