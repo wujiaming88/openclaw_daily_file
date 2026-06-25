@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-06-25
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施研究周报 · 第 2 期（2026-06-18~06-24）](research/2026-06-25-global-ai-agent-infra-weekly.md) | research | 黄山×3+小帅 | 聚焦 Agent 基础设施赛道（运行时/编排层/框架托管）周报第2期，11对象全覆盖（A组3云厂100%+B组4+C组4）。四维质量门控全过（覆盖11/12·原文抽查5/5 URL真实·每对象洞察+四维趋势·关键数据多源交叉验证）。本周主线=「Agent 生产化治理」竞赛集中引爆：三大云厂同周把战线推进到「能否在生产治理 Agent」。TOP5（按基础设施格局信号价值排序）：①三大云厂同周 GA「Gateway+Observability」(AWS 6-17/Google 6-18 隔天打擂台·Agent 安全网格成 H2 必争之地)②Anthropic Claude Tag 发布(6-23·Slack 多人共享常驻 Agent·内部 65% 产品代码已由其生成·Opus 4.8)③Databricks Agent Bricks 平台化(DAIS 2026·10万+Agents/年处理1+千万亿tokens·Unity AI Gateway 统一治理·SpaceX Grok/Kimi 纳入)④Google ADK A2A 1.0+默认 OTel(6-18·押开放互操作·Agent Registry 纳入 A2A 1.0·新部署默认追踪)⑤Microsoft 双框架收敛(AutoGen 冻结停在 v0.7.5+SK successor callout·框架战争内部收敛为 Microsoft Agent Framework)。四维趋势：产品(Gateway 安全网格+默认 OTel 成标配) 生态(MCP 成三家共识底座/A2A 由 Google 高举) 采用(Databricks 10万+Agents/Anthropic 内部 65% 代码) 竞争(模型厂商垂直整合 vs 中立框架全栈托管化正面对撞)。Stars 实时：n8n 193.9k>Dify 146.5k>CrewAI 54.3k>Flowise 54.0k>langgraph 35.7k>openai-agents 27.4k>Coze Studio 21.0k。已发布博客 |
+
+---
+
 ## 2026-06-24
 
 | 文件 | 目录 | 产出人 | 说明 |
