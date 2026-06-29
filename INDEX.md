@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-06-29
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 赛道研究周报 · 第 4 期（2026-06-22~06-28）](research/2026-06-29-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 聚焦 AI Agent 赛道周报第4期，4板块28对象全覆盖（A编码Agent/CLI7·B通用框架7·C垂直企业7·D浏览器操作+中国7）。四维质量门控全过（覆盖28/28·有料约16/静默约12均附原因、原文抽查5/5 URL真实数据对得上、每对象洞察+三维度趋势到位、关键数据多源交叉验证）。TOP5：①OpenAI预览GPT-5.6(Sol/Terra/Luna·ultra mode+subagents把多智能体编排做进模型·Terminal-Bench2.1 SOTA·因cyber顾虑应美政府要求限定预览·6-26)②SpaceX 600亿美元收编Cursor/Anysphere持续发酵+Composer2.5把Bugbot做到亚分钟(本周延烧)③Perplexity推出Computer for Counsel入侵法律垂直(20+模型·400+连接器·直插Harvey·6-24)④Agent框架一周三爆安全漏洞·AutoGen Studio RCE评分9.8(4200公网暴露·已发0.4.8修复·6-23)⑤智谱借美对Anthropic出口管制卡位Claude平替·市值冲9693亿港元中国AI第三(6-24)。三维趋势：学术(无新SWE-bench突破·重心转向Rubric自评/GEPA优化器/Terminal-Bench)、工程(远程化Codex Remote GA+可治理化Claude企业治理+声明式编排CrewAI/Dify difyctl)、商业化(垂直企业Agent资本高度集中·Glean入选Gartner No-Code Agent Builders Market Shaper)。主线=赛道从模型能力竞赛整体迈入工程化/远程化/可治理化/商业化落地的分水岭。已发布博客 |
+
+---
+
 ## 2026-06-28
 
 | 文件 | 目录 | 产出人 | 说明 |
