@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-07-02
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施研究周报 · 第 3 期（2026-06-25~07-01）](research/2026-07-02-global-ai-agent-infra-weekly.md) | research | 黄山×3+小帅 | 聚焦 AI Agent 基础设施赛道（运行时/编排层/框架托管）周报第3期，3组并行覆盖11核心对象（A三大云厂托管平台100%必出：AWS AgentCore/Google Vertex→GEAP/微软Foundry；B模型厂商+通用框架：OpenAI/Anthropic/LangChain/CrewAI；C数据开源中国：Databricks/Dify/字节Coze/n8n+Flowise）。四维质量门控全过（覆盖11/12·A组云厂100%、原文抽查5个URL真实、判断质量四维齐、数据有源交叉验证）。TOP5（按基础设施格局信号价值排序）：①AWS AgentCore一整排组件同周GA（Web Search/Managed KB/Harness/评估三件套+Gateway统一治理面+WAF/SOC·托管Agent平台正式进入生产平台阶段）②三大云厂同步跨进生产GA下半场（AWS平台成型/Google Vertex收编进GEAP+语义治理SGP运行时意图门控/微软Hosted Agents临GA+MAF统一SK+AutoGen）③Anthropic模型因cyber能力遭美出口管制一度全球下线又于7/1复活（Fable5/Mythos5·监管中断风险成Agent选型一等考量）④「子代理」范式跨厂商共识化（OpenAI GPT-5.6 ultra mode与LangChain Deep Agents动态子代理同周撞车·运行时按需生成子代理成行业共识）⑤字节扣子企业版近翻倍提价（标准版¥498→¥980 +97%·7/13生效）+开源重心从Coze Studio转向评测平台Coze Loop。核心研判：竞争焦点从「能不能托管agent」转向「治理更可信/分发更近业务/变现更顺」——微软领跑分发变现(Teams/M365 Copilot+Copilot Credits)、Google领跑语义治理、AWS领跑平台工程完备度；治理/评测/协议互操作(MCP+A2A)成三位一体新主战场。已发布博客 |
+
+---
+
 ## 2026-07-01
 
 | 文件 | 目录 | 产出人 | 说明 |
