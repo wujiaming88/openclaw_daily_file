@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-07-06
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 赛道周报 · 第 5 期（2026-06-29~07-05）](research/2026-07-06-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 聚焦 AI Agent 赛道周报第5期，4组并行覆盖28对象（A编码Agent/CLI 7/B通用框架7/C垂直企业7/D浏览器操作+中国7）。四维质量门控全过（覆盖28/28·100%、原文抽查5/5 URL真实数据对得上、每对象洞察+三维度趋势到位、关键数据多源交叉验证）。TOP5：①Claude Sonnet 5发布(6-30·逼近Opus 4.8·介绍价$2/$10·OSWorld/BigLaw 91.3%·驱动Claude Code/Cowork/Harvey/OpenCode多产品)②Devin Fusion多模型路由降本35%(6-29·sidekick+动态会话中路由·FrontierCode基准·内部88% PR自动路由)③Hermes v0.18.0判断力版本(7-1·25万行改动+P0/P1全清·完成契约自验证闭环·MoA一等公民)④Anthropic Claude Cowork桌面自主Agent面向白领(~7-2·computer-use大众化·与Gemini Spark/ChatGPT Agent三足)⑤OpenClaw v2026.7.1-beta.2(7-5·GPT-5.6支持+attach多harness编排+ClawRouter+capability profiles·38.2万⭐)。三维度趋势：①学术=FrontierCode/Qwen-AgentWorld新benchmark+检索被Agent化(LlamaIndex Retrieval Harness)②工程=多模型路由+子Agent编排产品化+安全自治治理成主旋律(Claude Code默认Manual权限)③商业=成本坍缩($2/$10腰斩)+企业渗透整合(Harvey拿下Eversheds/Glean ARR破3亿/Replit加Whop变现)。已发布博客 |
+
+---
+
 ## 2026-07-05
 
 | 文件 | 目录 | 产出人 | 说明 |
