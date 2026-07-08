@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [A2A 协议深度研究与 OpenClaw 集成综合报告](research/2026-07-08-a2a-protocol-openclaw-integration.md) | research | 黄山+泰山+小帅 | A2A（Agent2Agent）协议深度研究为主、OpenClaw 集成为辅的综合报告（774行/15章/4图 mermaid，主辅比≫6:1）。第一部分·A2A 协议（基于官方 spec v1.0.0 / proto lf.a2a.v1）：定位与边界、字段级数据模型（AgentCard / Task+9态状态机 / Message/Part / Artifact / Skill）、协议机制（JSON-RPC/gRPC/REST 三绑定 + 11 抽象操作 + SSE 流式 + webhook 推送 + 错误码映射）、能力发现与扩展两级治理、安全模型（OAuth2/OIDC/mTLS/APIKey + 任务内二次授权 + opaque）、A2A vs MCP/ACP/LangGraph/CrewAI/AutoGen 对比表、生态成熟度（LF 治理/六语言 SDK）+ a2a-python 落地骨架。第二部分·OpenClaw 集成（辅）：A2A 补上 OpenClaw 唯一空缺的“agent↔外部 agent”层（与 MCP/ACP/sessions_spawn 各管一层），出站工具集 + 入站 AgentExecutor 桥接 + 9态映射 + untrusted 信任边界 + 与 CrewAI/LangGraph 互操作场景 + PoC→MVP→生产路线图。 |
 | [全球 AI 创业公司研究周报 · 第 5 期（2026-07-01~07-07）](research/2026-07-08-global-ai-startup-weekly.md) | research | 黄山×4+小帅 | 聚焦估值<$10亿早期AI创业公司纵深周报第5期，4组并行遴选18家（美6/中6/欧洲+以色列3/东南亚+海湾+东亚3），每家五维深研（产品/融资/创始人/竞争力/赛道）≥300字+原文URL+交叉验证。四维质量门控全过（覆盖美6/中6达标·原文抽查5/5实测200·五维齐全18/18·数据有源交叉验证）。TOP5（按决策信号价值排序）：①Agave（美·建筑垂直AI·$15M A轮Accel领投·已盈利2年+营收3×增长·8万+项目·对14+老旧ERP专有双向连接“能动手”）②忆生科技TranscEngram（中·具身智能/物理世界模型·数亿元天使·马毅港大院长/马尔奖得主·大脑+小脑记忆架构·较VLA提升3倍·跨本体迁移）③Bespoke Labs（美·Agent训练RL环境·$40M·Jeff Dean级天使·卖铲人卡位训练/验证中间层·OpenThoughts/GEPA开源）④智推时代GenOptima（中·GEO生成式引擎优化·数千万天使·搜狗前COO茹立云联创·一年ARR破亿客户近400家·3.29亿信源）⑤Tangos AI（以·金融犯罪调查AI Agent·$2000万种子·前OFAC/情报官员团队·Red Dot领投Bright Data战投）。核心研判：通用大模型融资叙事退潮，钱加速流向AI的“管道”和“最难啃的角落”——美国Agent训练基础设施+垂直操作层、中国具身智能+应用层落地、欧洲以色列受监管B2B工具、海湾东南亚已跑通商业闭环的实体AI；当模型商品化，胜负手从“模型多强”转向“落地多稳”。已发布博客 |
 
 ---
