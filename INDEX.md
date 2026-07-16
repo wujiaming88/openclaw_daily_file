@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-07-16
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施研究周报 · 第 5 期（2026-07-09~07-15）](research/2026-07-16-global-ai-agent-infra-weekly.md) | research | 黄山×3+小帅 | 聚焦 Agent 基础设施赛道（运行时/编排层/框架托管）周报第5期，3组并行覆盖11/12对象（A组三大云厂100%+字节Coze），有动态对象全部web_fetch读原文附URL。四维质量门控全过（覆盖率11/12·原文抽查5/5·四维趋势齐·数据交叉验证零编造）。TOP5（按对基础设施格局信号价值排序）：①微软Foundry「全家桶GA」（7/9 Hosted agents统一生产运行时GA+GPT-5.6 Sol/Terra/Luna+APAC数据区+Voice Live，本周唯一平台级重磅）②OpenAI hosted multi-agent over WebSocket（Agents SDK v0.18.2·把多智能体编排上抬为Responses托管服务+砍掉Agent Builder）③Google Memory Bank profiles GA+ADK默认OTEL tracing（7/15·长期记忆结构化直取+可观测收口）④Dify v1.16.0-rc1「Dify Agent」（7/9·开源阵营切入shell/Linux sandbox+Skills通用Agent运行时）⑤Databricks Omnigent会话级contextual policy防slow-burn攻击（7/14·Agent治理从单点授权升级到会话级行为审计）。核心研判：2026下半年竞争主战场已从「能不能搭Agent」转向「生产级可运维性」——三大云厂在托管运行时上趋同（微软领跑/Google稳推/AWS收口）、模型厂商把编排搬上托管服务器+安全隔离、开源与中国阵营把沙箱执行+技能包+会话级治理做成分水岭。托管、隔离、治理成同一道考题。已发布博客 |
+
+---
+
 ## 2026-07-15
 
 | 文件 | 目录 | 产出人 | 说明 |
