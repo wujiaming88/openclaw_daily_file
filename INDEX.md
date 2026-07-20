@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-07-20
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 研究周报 · 第 7 期（2026-07-13~07-19）](research/2026-07-20-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 聚焦 AI Agent 赛道周报第7期，4板块28对象全覆盖（A编码Agent/CLI7·B通用框架7·C垂直企业7·D浏览器操作+中国7）。四维质量门控全过（覆盖28/28·100%、原文抽查5/5 URL真实且内容对齐、每对象洞察+三维度趋势到位、关键数据有源或标注未公开）。TOP5：①Kimi K3 开放 3T 级长程工作模型（2.8T参数/1M上下文/开放权重计划7-27/API定价明确）②Dify 1.16.0 推出 Dify Agent Beta（Linux sandbox+Skills+Workflow agent node+MCP 2025-06-18）③Sierra Horizon（long-horizon planning+outcome-based pricing，把客服Agent推进到业务结果）④Claude Code 密集安全治理更新（权限/子Agent/MCP/OTel/WebSearch上限）⑤Glean Agent identity+Databricks Assistant（企业Agent独立身份、审计归因与数仓上下文融合）。三维趋势：学术评测从单步刷榜转向长程执行/安全红队/生产指标；工程从单CLI/框架升级为可沙箱、可审计、可观测、可治理的Agent OS；商业化从演示转向完成业务结果与企业计费/容量/治理。已发布博客 |
+
+---
+
 ## 2026-07-16
 
 | 文件 | 目录 | 产出人 | 说明 |
