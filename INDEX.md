@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-07-30
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施研究周报 · 第 7 期（2026-07-23 ~ 2026-07-29）](research/2026-07-30-global-ai-agent-infra-weekly.md) | research | 黄山×5+小帅 | 覆盖 24 个 AI Agent 基础设施核心对象，A 组 6 大云厂 100% 覆盖。主线：Agent 基础设施从可运行走向可治理、可审计、可计费；TOP5 聚焦 AWS AgentCore/MCP Gateway、腾讯 ADP 4.0、OpenAI Programmatic Tool Calling、MCP 2026-07-28、Zep/Graphiti Memory。 |
+
+---
+
 ## 2026-07-29
 
 | 文件 | 目录 | 产出人 | 说明 |
