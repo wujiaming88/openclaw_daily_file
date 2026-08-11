@@ -55,64 +55,188 @@ Hadrian 8 月 6 日宣布完成**13.7 亿美元 Series D**，估值**78.7 亿美
 
 # 一、7 面雷达
 
-## 1. 技术进展：从“大模型”转向可部署闭环
+## 技术研究：世界模型、记忆、层级控制与安全中间层同时变厚
 
-### 世界模型与合成数据
+本节只把作者论文或项目页明确给出的内容写作“原文事实”；“作者主张”是论文对结果的解释；“我们的判断”是基于实验口径、对照与部署条件作出的独立分析。所有精确数值尚无第三方复现时均标注为作者报告。
 
-**GeniWorld**（8 月 6 日）把数值动作通过 URDF 和正向运动学渲染为像素对齐的 embodiment motion，再与视频 latent 一同输入 causal DiT，以 flow matching、自回归预测和 KV cache 建模场景变化。RoboTwin 2.0 使用 2,250 条训练、250 条测试轨迹；作者称合成数据加入 π0 后，四项真机 OOD overall success 从 **40.8% 提升到 69.0%**。精确数字仍为论文单源，代码页显示“Coming soon”。
+### 1. LiLa-WAM：轻量世界—动作模型的价值不只是“单卡”，而是把未来预测变成训练时正则
 
-相比直接把低维动作注入视频模型，视觉动作改善空间对齐；相比传统仿真，它减少手工建模，却仍可能生成“看起来对、物理上错”的接触过程。近期更适合作离线 policy evaluator 与数据增强器，而不是直接进入实时控制环。
+**原文事实。** LiLa-WAM 冻结 DINOv3 ViT-L/16，先融合多个视觉层的 patch feature，再用 query adapter 压成固定数量 token。约 0.5B 的模型中约 0.2B 可训练；DiT action expert 把 noisy action chunk、proprioception、视觉 token 和 Visual Transition Token（VTT）放进同一 token stream，以 flow matching 预测动作速度，同时输出未来 latent。训练时，轻量 decoder 把未来 latent 对齐到未来图像的 DINO 特征；推理时 decoder 被丢弃，因此“预见未来”主要是共享表示的辅助监督，而不是在线生成一段视频。VTT 是同一任务多条示范首帧与末帧全局 embedding 差的平均值，部署时无需语言和目标图。官方仓库给出 Python 3.10、PyTorch 2.7.1/CUDA 12.8、处理后 RoboTwin 2.0 数据、权重和 eval 指南；作者报告 50 个 RoboTwin clean 任务平均成功率 90.48%，单 RTX 5090 联合训练约 110 GPU-hours。
 
-来源：[论文，2026-08-06](https://arxiv.org/html/2608.06332)；[项目页](https://chenghaogu.github.io/GeniWorld/)。
+**实验、对比与消融。** RoboTwin 由单模型覆盖 50 任务；LIBERO 则四个 suite 各训练一个策略，每任务 50 rollouts，不能把两个结果直接当成同一种“通用性”。论文称其在 RoboTwin 超过 8B Motus 与 5B GigaWorld，并以更小参数取得有竞争力表现，但不同方法的视觉输入、预训练和数据处理可能不完全一致。论文还做了 future-state supervision、VTT、视觉层融合等设计消融；真正应关注的是去掉未来监督后控制表现是否下降，而不是未来 latent 是否“看起来合理”。真机只覆盖 10 个桌面任务，能证明管线可落地，却不能证明开放世界组合泛化、长时序可靠性或跨本体迁移。
 
-### 长期记忆与层级 Agent
+**作者主张。** 作者把主要贡献概括为：单 24GB GPU 可端到端训练、latent future prediction 与动作共享表示、VTT 免语言任务条件。
 
-**AtlasVLA**（8 月 7 日）以 DINOv2/SigLIP、Depth Anything v3、外参回投影和 voxel hash 构建 4D Persistent World State，再以 Ego-Working Memory 跟踪任务进度；作者报告 LIBERO **97.6%**、RLBench **70.8%**，真机长程相对 π0 提升 17.5 个百分点。瓶颈是深度与手眼标定误差、voxel 旧状态污染、7B+300M 部署成本；没有公开代码，指标待验证。
+**我们的判断。** 这条路线的优势是研发门槛：小团队可以在一张消费卡上做可复核的 world-action ablation，而不必先获得视频生成模型级别算力。但 VTT 也是明显边界：它是“已知任务的平均视觉变化方向”，对同名任务中多个合法终态、组合指令、条件分支和在线新任务并不天然成立；任务 ID 实际被离线示范统计编码。90.48% 又是 clean 仿真口径，不能推导到真实车间。复现还依赖 DINOv3 权重、预处理、VTT 文件、stationary removal、outlier normalization 与 RoboTwin 版本锁定，仓库页面未明确展示许可证，商业使用要先清权。**工程/商业机会**不是再训练一个通用 VLA，而是做“一卡实验工作台”：数据 schema、VTT/goal-condition 生成、训练追踪、固定 benchmark runner、checkpoint/数据 lineage、TensorRT/ONNX 转换和真机 replay。对 Agent 工程的迁移点是把“任务条件”抽象成可版本化 artifact，并对每次 policy 变更建立任务级回归。
 
-来源：[论文，2026-08-07](https://arxiv.org/html/2608.06729v1)。
+来源：[论文（2026-08-04）](https://arxiv.org/html/2608.03701v1)；[官方 GitHub](https://github.com/teee000/LiLa-WAM)。
 
-**HiRoC**（8 月 6 日）用 Qwen2.5-VL-3B planner 拆 subgoal，OpenVLA-OFT executor 先做 subgoal-conditioned SFT，再用 task-level + subgoal-level hierarchical GRPO 在线强化。作者报告 LIBERO-Long 98%，但没有真机指标，训练需要 8×H200。它与 AI Agent 的 planner/executor、typed subgoal、trace/eval、失败重规划高度同构，但 planner 错误级联与 reward hacking 仍是核心风险。
+### 2. GeniWorld：把动作渲染成“机器人运动视频”，目标是成为可交互的策略评测器
 
-来源：[论文，2026-08-06](https://arxiv.org/html/2608.05999v1)。
+**原文事实。** GeniWorld 不把关节/末端数值直接塞给视频模型，而是利用目标机器人的 URDF 和正向运动学，从目标相机视角渲染不含背景与物体的机器人运动序列。视觉动作经 causal 3D VAE 编码后与 video latent 在通道维拼接，输入 causal DiT，以 flow matching 自回归预测下一段观察；KV cache 保留历史。其核心假设是把 embodiment kinematics 显式空间对齐后，模型可把“机器人如何动”与“环境如何变化”部分解耦。RoboTwin 2.0 使用 50 任务×45=2,250 条 clean 训练轨迹、250 条 clean holdout，并把 250 条 random 轨迹作为零样本 OOD 测试；每条 121 帧、24fps。真机部分每任务以 25 条真实示范为起点，再生成 65 条空间随机轨迹和 65 条多样条件轨迹；H20、5 sampling steps 下约 8Hz。
 
-### 人类视频到技能与数据层
+**实验、对比与消融。** 论文用 PSNR/SSIM、LPIPS、FID/FVD 比较视频质量，并比较 clean→clean 与 clean→random，消融显示 dense visual action 比低维动作或弱空间条件更能保持命令运动。更关键的下游实验不是视频观感：四个真机任务（Move Bowl、Fold Towel、Place Mug、Open Drawer），每种设置各 20 次。只用真实数据时五类设置 overall 为 40.8%；加入 spatial-gen 后 51.0%；再加 diverse-gen 后 69.0%。例如 novel instance 均值从 30.0% 到 70.0%，distractor 从 33.8% 到 72.5%。项目页目前明确写着 Code “Coming soon”。
 
-**RoboReact**（8 月 4—5 日）从单帧 RGB-D 生成第一视角操作视频，经 3D 重建、object-centric keyframe、高自由度 retarget 和有界 VLM 编辑校准，最后把冻结技能重新落到物体位姿。四项真机任务平均 terminal success **81.3%**，论文与项目页数据一致；但任务仅 4 项、依赖多轮真机校准，代码与权重尚不完整。
+**作者主张。** 作者认为视觉动作改善 OOD 可控性，使世界模型可用于 policy evaluation 与生成新的操作轨迹。
 
-来源：[论文 v2，2026-08-05](https://arxiv.org/html/2608.03387v2)；[项目页](https://roboreact.github.io/)。
+**我们的判断。** 40.8→69.0 是本周最值得跟的合成数据结果之一，因为它来自真实机器人策略的多设置试验，而不是仅看 FVD。但“视频世界模型”仍不等于物理模拟器：接触力、摩擦、柔性物体、遮挡后的状态和不可见失败可能被生成模型用视觉先验“补得合理”，造成 evaluator 过度乐观。8Hz/H20 也离多数低层闭环 20–100Hz 有距离，更适合离线筛选、遥操作预演和中高层滚动预测，不宜直连安全关键控制。复现需要 URDF、精确相机外参、动作重放/渲染器、视频 backbone、H20 级显存以及真实—合成数据配比；代码未发是当前最大阻塞。**工程机会**是 world-model evaluator：定义 policy adapter、scenario manifest、real-vs-model calibration、counterfactual rollout、相关性报告、假阳性案例库；另一个机会是合成数据 provenance，把原始真机轨迹、图像编辑条件、生成轨迹和最终 policy 版本串成可审计谱系。Agent 团队可把人类遥操作和 policy 统一成 action provider，并在模型中先运行计划、只把通过风险门限的计划送真机。
 
-**VLAff / EgoAffordance**（东京大学，8 月 5 日）把第一视角视频抽取为交互热图、96 维手抓姿与 6D 轨迹，数据集含 **204,025 episodes、5,782,431 heatmaps、11,612,524 trajectories**。作者报告 10 项仿真零样本平均 83%、5 项真机平均 68%。价值在于建立 object-centric affordance 中间层，避免动作完全绑定某一机器人；风险是 HOI、分割、MANO、SfM、深度和位姿估计形成长误差链。
+来源：[论文（2026-08-06）](https://arxiv.org/html/2608.06332)；[官方项目页](https://chenghaogu.github.io/GeniWorld/)。
 
-来源：[论文，2026-08-05](https://arxiv.org/html/2608.05215v1)。
+### 3. AtlasVLA：VLA 的“记忆”开始从上下文窗口变成可写、可忘、可检索的 4D 状态
 
-### 运动控制、固件与安全
+**原文事实。** AtlasVLA 严格只用 wrist RGB、机器人状态与语言指令。它用冻结视觉编码器提 token，以 Depth Anything v3 流式深度、相机内参、手眼标定和末端位姿回投到 3D；token 加空间/时间 embedding 后写入 voxel-hash world memory，同一 voxel 按深度置信度融合，并通过 temporal sliding window 遗忘，同时保留首帧 anchor。另一条 Ego-Working Memory 用 learnable query 压缩历史、做冗余感知 consolidation，表征任务进度。动作端是约 300M 的 step-wise conditioned DiT，顺序读取 ego 与 world context；LLM 规模 7B。训练用 8×A100、FSDP、global batch 256；推理 10 步 DDIM。作者报告 LIBERO 97.6%、RLBench 70.8%，RLBench 每任务验证 20 episodes；真实长程任务相对 π0 提升 17.5 个百分点。
 
-韩国 KAIST 的 **TRACE**（8 月 6 日）用 30 步 IMU+关节历史、foot-aware cross-attention、GRU 与物理损失做足式里程计；0.2M 参数在 Raibo2 CPU 推理约 **0.2774ms**，作者称多地形 position ATE 相对最强基线降低 39.2%—53.8%。目前真机微调依赖 FAST-LIO2 参考，且主要是记录数据离线评估。
+**实验、对比与消融。** 论文与 wrist-only、multi-view VLA 及 π0 等基线比较。消融比总榜单更能说明价值：真实任务 full system 为 69.5%，去掉 world state memory 降到 54.0%；去掉 ego-working memory下降 13 个百分点；naive accumulation 相比时空更新低 11.5 个百分点；去掉 world-state conditioning 也明显下降。这说明“有历史”不等于“有用记忆”，写入、去重、空间融合和遗忘策略才是主要技术增量。
 
-来源：[论文，2026-08-06](https://arxiv.org/html/2608.05975v1)。
+**作者主张。** 作者认为 dual memory 解决 wrist camera 的视野遗忘和长任务的进度遗忘，让单视角系统超过部分多视角基线。
 
-**FineMote**（8 月 5 日）从 URDF/xacro 类树结构生成 device object，把 Update/Handle 两阶段和依赖/period 在编译期静态调度。FINS-ROV 真机中，最远 sensor→motor 平均间隔从 **1610.00μs 降到 53.64μs**，actuator jitter 从 18.87μs 降到 5.34μs。单平台结果待复现，但 URDF→固件代码生成、WCET profiler、CI timing regression 是很近的软件产品机会。
+**我们的判断。** 这是最贴近 Agent memory 工程的 VLA 工作，但物理世界记忆比文本 memory 更难：Depth Anything 的尺度/局部误差、手眼标定漂移、末端柔顺变形都会把同一物体写进错误 voxel；物体被机器人移动后，旧 token 可能继续存在，形成“幽灵状态”。滑窗和首帧 anchor 也存在冲突：首帧对静态布局有用，对被移动物体可能永久过期。作者没有提供公开代码，8×A100 与 7B+300M 使复现门槛高；真实任务规模仍不足以证明数小时运行的地图稳定性。**软件机会**是具身 memory service，而非训练整个 AtlasVLA：统一 world-state schema、对象/voxel TTL、置信度衰减、写冲突检测、relocalization、memory snapshot/replay、任务进度 state machine 和“证据指针”。Agent 工程可迁移 event sourcing、vector retrieval、working/episodic memory，但必须增加几何一致性、时间有效性与传感器来源可信度。
 
-来源：[论文，2026-08-05](https://arxiv.org/html/2608.04600)。
+来源：[论文（2026-08-07）](https://arxiv.org/html/2608.06729v1)（方法、实验、消融、附录均已读；本周未发现独立官方代码/项目正文，指标为单一一级来源）。
 
-ROS 2 于本周发布 **Lyrical Luth Patch Release 2**，覆盖 RHEL 10、Ubuntu 26.04 和 Windows 二进制包。它没有性能 benchmark，却提供了一个现实切口：企业升级验证、跨架构构建、SBOM/CVE、launch graph 测试和 bag replay CI。
+### 4. HiRoC：真正的增量是 planner–executor 对齐，而不只是“给 VLA 外挂一个 LLM”
 
-来源：[GitHub Release，2026-08-07/08](https://github.com/ros2/ros2/releases/tag/release-lyrical-20260807)。
+**原文事实。** HiRoC 把高层 planner 与低层 VLA executor 分开。planner 使用从 VLA-OS 清洗、统一标签并重标冲突样本的数据做 SFT，预测“当前观察下的下一个 subgoal”；随后冻结 planner。executor 原本只理解全局任务，为避免直接切换到 subgoal 后的分布错位，先把轨迹拆成 `(observation, subgoal, action chunk)` 做 subgoal-conditioned SFT，再在 planner 生成的 subgoal 下进行在线 RL。Hierarchical GRPO 同时利用整条任务回报与 subgoal 进展，group size 8。实验使用 Qwen2.5-VL-3B planner、OpenVLA-OFT executor，8×H200；每任务 50 test episodes，与十个代表性基线比较。作者报告跨基准平均提升 10.06%，LIBERO-Long 达 98%。
 
-一项真实世界物理 prompt injection 研究在 Kinova + RealSense 分拣场景测试纸面文字攻击，5,670 次试验中，GPT-4o、Gemini 2.5 Flash、Qwen3-VL-32B 攻击成功率分别为 **27.0%、29.4%、5.0%**；two-stage verification 和文字 masking 能显著降低攻击，但 masking 会伤害必须读标签的任务。它说明具身 Agent 必须把视觉内容与控制权限分离，保留双模型验证、policy-as-code、人工批准和硬件急停。
+**实验、对比与消融。** 对照包括平坦 RL、显式规划、world-model/reward-model 等路线。去 planner 会显著降低最终性能并使学习曲线波动；global GRPO 是主要增益，local/subgoal GRPO 进一步改善。论文有真机部署展示，说明能执行 approach—grasp—transport—place，但没有像仿真一样披露足够的多任务、重复次数和置信区间，因此不能把“真机成功演示”写成量化泛化证明。
 
-来源：[论文，2026-08-06](https://arxiv.org/html/2608.05715v1)。
+**作者主张。** 作者认为显式 subgoal 让长时序任务具备阶段锚点，SFT 解决 planner/executor 冷启动，层级 reward 提供比最终成败更密集的学习信号。
 
-## 2. 产品与公司：明确工序胜过通用演示
+**我们的判断。** 这和软件 Agent 的 planner/executor 模式高度同构，但机器人版本的错误代价更高：planner 可能产生语义合理却动力学不可执行的 subgoal；executor 在局部奖励下可能 reward hack；planner 冻结意味着执行失败不能反向修正规划器；subgoal completion detector 一旦误判，会提前切阶段。8×H200 也使在线 RL 很难成为普通团队的近期产品。**最可迁移机会**不是复制训练，而是定义“具身 subgoal 协议”：typed object/action/constraint、precondition/postcondition、可达性检查、超时与恢复、trace ID、planner/executor 版本、人工批准和失败重规划。可做一个 ROS 2 + 仿真的 hierarchical trace/eval：比较全局任务成功率、每 subgoal 成功率、重规划次数、级联失败和人类接管率。这样既复用 Agent orchestration，又能在不拥有大模型训练预算的情况下进入具身栈。
 
-- **Tate × Hirebotics**：58 套焊接 cobot 跨三厂部署，供应商/客户称每名焊工产出 12 倍；属规模部署，但 TCO 和良率待独立审计。
-- **KUKA × Contoro × States Logistics**：非结构化卸货从人工 2—3 柜/8 小时提高到机器人 4—5 柜/班，采用按柜计价 RaaS。KUKA 原始案例在窗口外，本周报道属于窗口内，因此部署数字作为背景引用。破损箱和严重位移仍需人工。
-- **FedEx × Dexterity**：本周权威报道延续 7 月 30 日官方公告，Mech 双臂与 Foresight 世界模型从试点扩大到较大生产验证；原始公告明确为“背景，非本周”，且未披露台数、装载速率、可用率和成本。
-- **Avnet × Weston Robot**：以最高 50 TOPS AMD Ryzen AI Embedded、3D LiDAR SLAM、视觉/热成像异常检测做 GPS 拒止环境巡检；没有客户名、台数、价格与误报率，判为早期 PoC。
-- **DOBOT LUMO**：近 1.3 米双足人形定位家庭、教育、陪伴和商演，宣称有视觉/语音情绪识别与长期学习；无价格、开售、续航、载荷、安全认证与客户数据，仍是产品发布/演示阶段。
-- **Robo Inc.**：RoboStore 新设美国本地制造与系统集成公司，计划建设 6.6 万平方英尺设施，2027 年 Q1 全面运营。公司自报销售/部署 1,500+ 台、4,500 客户、4,000+ 开发者，均为单源待验证；但“硬件无关集成+安全测试+售后”本身代表价值链迁移。
-- **VicOne Radeis Extension**：把 DEF CON 机器人攻击研究做成免费的 NVIDIA Isaac Sim 扩展，能观察网络攻击如何改变机器人行为。它是安全开发工具发布，不是客户规模部署。
-- **Blue Water Autonomy**：进入美国海军 NAVOCEANO 多供应商 IDIQ 合同池，以无人水面船执行深海测绘。**4,000 万美元是合同池上限，不是该公司独占订单**。
+来源：[论文（2026-08-06）](https://arxiv.org/html/2608.05999v1)（方法、实验、真机展示、消融均已读；未找到独立官方代码正文，量化结果为单一一级来源）。
+
+### 5. RoboReact：生成视频不是动作真值；可执行性的来源是对象中心技能编译与 15 轮校准
+
+**原文事实。** RoboReact 从一个第一视角 RGB-D 帧和任务语言生成候选人类操作视频，VLM 选择视频并挑出关键交互帧；系统用深度感知 3D 重建和手姿恢复，把视频编译为对象中心 keyframe skill。每个 keyframe 记录阶段（approach/align/fixed）、参考物体、左右末端 SE(3)、手指命令和有效 mask。相对物体的手—物几何在测试时按当前物体位姿重新落地；候选编辑必须通过结构、物体位姿新鲜度、支持的编辑类型、关节限位与 IK 可行性检查。冻结 VLM 只在校准 rollout 中看第一/第三人称 RGB-D、命令/实际末端、手指和 proprioception，提出有边界的局部编辑；测试时 VLM 不在控制环，技能冻结后交给 whole-body controller。
+
+**实验、对比与消融。** 四个真机长任务为 Hand Over、Open Box、Pour Water、Open Drawer。终态成功率：ReKep 为 35/15/40/20，YOTO 为 75/65/80/75，one-shot real prior 为 85/70/80/85，RoboReact 为 85/70/85/85，平均 81.3%。这组结果说明生成视频先验已接近真实视频先验，但差距主要被后续校准吸收。校准并非小成本：主要结果采用 15 rounds；Pour Water 的逐步平均长度从无关键帧选择 3.69、无 memory 3.92、无第三视角 4.77，提高到 full 5.62。项目页还报告 Seedance 2.0 相比 1.5 Pro 提高 Pour Water / Open Drawer，证明视频先验质量有影响，但完整系统不是“一次生成就执行”。
+
+**作者主张。** 作者将其定位为无需任务专用遥操作/人类示范、可从生成视频蒸馏全身技能的框架，并强调对象中心重落地与 VLM trial-and-error 可处理几何偏差。
+
+**我们的判断。** 这项工作的工程价值在“skill compiler”，不在视频生成本身。生成视频没有可靠尺度、力、摩擦和遮挡后状态；可用性来自把连续视频压成少量可解释 keyframe，再以真实 rollout 校准。失败边界包括：物体检测/位姿错、透明反光物、双手接触力、软物体拓扑变化、IK 可达但动力学不稳、第三视角不可用，以及 15 轮真机校准对设备时间和安全员的消耗。81.3% 也不足以直接进入无人值守生产。复现需要 RGB-D、生成视频服务、手/物重建、对象位姿、whole-body controller、第三人称相机和严格的可行性投影；代码公开状态不明确。**软件/Agent 机会**是做可解释技能资产平台：keyframe DSL、对象坐标系绑定、版本 diff、rollout memory、VLM 建议审计、IK/碰撞 validator、校准预算调度、冻结/发布/回滚。它比让 VLM 在线输出关节命令安全，也更适合软件团队做跨本体 adapter。
+
+来源：[论文 v2（2026-08-05）](https://arxiv.org/html/2608.03387v2)；[官方项目页](https://roboreact.github.io/)。
+
+### 6. VLAff / EgoAffordance：用“哪里—怎么抓—怎么动”作为人类视频到机器人的中间 API
+
+**原文事实。** 东京大学团队从带语言和时间段标注的第一视角视频出发，用大 VLM 找接触关键帧、动作/物体/手信息，再串联 hand-object detector、分割、2D 手点、MANO 3D 手重建、ego segmentation/inpainting、单目深度、内参估计、SfM 相机位姿和 3D 手轨迹，生成 EgoAffordance。最终规模为 204,025 episodes、5,782,431 visual heatmaps、11,612,524 trajectories；论文摘要和表格对对象/动作计数口径略有不同，写作时应采用实验设置中的精确全量数字而非混用“5.6M”。VLAff 以 Qwen2.5-VL 为核心，另接 DINOv2 密集视觉编码器；`<SEG>` 驱动 heatmap decoder，`<GRASP>` 回归 96D MANO（global wrist + 15 joints 的 6D rotation），轨迹被量化成自回归 6D pose token。预测后再用深度/相机信息把 2D contact anchor 抬升到 3D，输出对象中心 grasp 与 trajectory。
+
+**实验、对比与消融。** 视觉 affordance 指标上，VLAff 的 IoU/NSS/SIM/KLD 为 0.121/1.542/0.142/2.517，优于 VRB、UAD、3DOI、LISA。零样本 manipulation 每任务仅 10 trials：10 个仿真任务平均 83%，略低于 VidBot 85%；5 个真机任务平均 68%，高于 VidBot 52%、其他基线 24–28%。这比“全面 SOTA”更准确：它在真机整体更强，但仿真平均并非最高。论文还在真实 Open Fridge 做去掉某一 affordance 模态的消融，说明 heatmap、grasp、trajectory 是互补信号。基线因本身不输出抓姿，统一外接 GraspNet；VLAff 用 human-hand→gripper retarget，比较仍包含不同接口带来的混杂。
+
+**作者主张。** 作者认为对象中心 actionable affordance 能跨越人/机器人 embodiment gap，统一模型学习三种表示的相关性，从而支持零样本操作和 affordance-guided policy learning。
+
+**我们的判断。** 这是比“直接把人类视频翻译成机器人 action”更可工程化的路线，因为 affordance 可以成为稳定中间 API。但自动标注链很长：接触帧、检测、分割、MANO、inpainting、深度、SfM、轨迹任一环节偏差都会被后续模型学成标签噪声；96D 人手姿到二指夹爪/不同灵巧手仍需 embodiment-specific retarget。每项 10 次的真机样本太小，68% 不能说明耐久或跨场景 SLA；数据、模型、代码许可也需核验。**软件机会**是 affordance DataOps：逐阶段置信度、自动异常检测、人工 active review、对象中心坐标规范、数据 lineage、跨本体 retarget plugin、heatmap/grasp/trajectory 一致性检查和评测服务。Agent 机会是让高层任务只输出 affordance intent，由受约束的 geometry/runtime 层生成动作，而不是把自然语言直接变成控制量。
+
+来源：[论文（2026-08-05，IROS 2026 accepted）](https://arxiv.org/html/2608.05215v1)（全文方法、数据、实验与消融已读；本周未发现独立官方项目/代码正文，属单一一级来源）。
+
+### 7. TRACE + 物理 Prompt Injection：端侧状态估计与高层语义安全，构成“Agent 不可越权”的上下护栏
+
+#### 7.1 TRACE：0.2M 参数的价值在 contact-aware sensor fusion，而不是替代所有定位传感器
+
+**原文事实。** TRACE 读取 30 步、每步 47D 的 IMU、12 关节位置/速度/目标力矩、上一时刻 roll/pitch 和水平速度、采样间隔，输出 3D 相对位移、Lie algebra 相对旋转和 body-frame velocity 共 9D。历史 body motion 经 temporal CNN 形成 query，当前加速度、角速度和四条腿形成 6 个 token，以两头 cross-attention 自适应加权；上下文进入 128 hidden GRU 与 `[256,128]` MLP。损失包含 Smooth-L1 estimation、速度积分与位移一致性、按 leg attention 加权的 contact-point velocity physics loss。RaiSim 中 400 并行环境，policy 100Hz、estimator 500Hz、simulator 4kHz，RTX 4060 约 20h；domain randomization 覆盖地形、摩擦、突发滑移、动力学、传感器/时序和外扰，再只微调 temporal encoder/head 到真机。
+
+**实验事实与边界。** Raibo2 在 flat/rough/slippery/soft 室内与 grass/hard ground/stairs/full course 室外测试。比如 soft terrain position ATE 0.1530，对 IEKF-SR 0.7027、Legolas 0.7620、NMN-IEKF 0.3309；作者概括相对强基线降约 53.8%。0.2M 参数在 CPU 约 0.2774ms。消融支持 physics loss、policy randomization 和 real fine-tuning 的贡献。但真机参考轨迹来自 FAST-LIO2，论文主要是记录数据上的 odometry 评估；没有证明在闭环导航中长期替代 LiDAR/GNSS，也没有跨机器人形态验证。**我们的判断**：它适合作为 exteroception 失效时的短时 fallback/融合 measurement，而不是单独承担全球定位。产品机会是可移植 estimator SDK、传感器 timestamp/校准、domain-randomization recipe、硬件在环 replay、drift dashboard 和 OOD/contact uncertainty gate。
+
+来源：[TRACE 论文（2026-08-06）](https://arxiv.org/html/2608.05975v1)（全文方法、训练、室内外实验与消融已读；无独立代码正文）。
+
+#### 7.2 物理 Prompt Injection：5,670 次不是机器人执行，而是现实布景照片上的规划攻击
+
+**原文事实。** 研究在 Kinova 机械臂、RealSense D435i 和真实水果/篮子工作台上拍摄三种 layout，把 20 种纸面攻击分为 indirect signage、task redefinition、authority impersonation、conflict injection；再配三种命令表达、三模型、21 条文本（含 neutral control）、每格 10 次，得到 `3×3×3×21×10=5,670` 次静态图像 VLM 规划评测。GPT-4o、Gemini 2.5 Flash、Qwen3-VL-32B 攻击成功率为 27.0%、29.4%、5.0%；成功攻击中 99.9% reasoning trace 明确认知了恶意文字。prompt defense、two-stage verification、text masking 分别可降低攻击，masking 在本 benchmark 达 100% 阻断，但会损伤必须读取标签的任务。
+
+**作者主张。** 作者认为人可读纸条能通过模型正常的视觉—语言通道劫持规划，且简单防御有效但存在功能权衡。
+
+**我们的判断。** 现文必须纠正：5,670 次不是机械臂真实执行，而是现实物理场景图像上的计划输出；因此它证明 planner vulnerability，不直接量化动作执行后的碰撞/伤害。静态顶视、单一分拣规则和三个模型也限制外推。不过，这个攻击面非常真实：视觉内容是“不可信数据”，不能与 operator/system command 同权。推荐的系统架构是：OCR/场景文字单独标记来源；VLM 只产生 typed proposal；独立 verifier 根据 operator intent、policy-as-code、空间/速度约束判定；高风险 action 要人工批准；低层 safety PLC/急停不接受 VLM 覆盖。可产品化为具身 Agent 安全网关、攻击场景库、仿真红队、权限与审计日志。不能简单全 mask，因为仓储条码、药品标签、工牌和安全标识本身就是任务输入。
+
+来源：[论文（2026-08-06）](https://arxiv.org/html/2608.05715v1)（方法、完整 factorial 设计、结果和 mitigation 均已读；无独立项目正文）。
+
+### 技术结论与机会优先级
+
+1. **立即做：具身评测与回放控制平面。** 接 ROS 2/仿真，固定任务 manifest、policy/version、rosbag/video、成功/干预/恢复/时延，并加入 world-model 与真机相关性校准。
+2. **立即做：typed subgoal + safety gateway。** 把 planner 输出限制在有 schema、precondition/postcondition 和权限的动作；视觉文字、用户指令、系统策略分信任域。
+3. **可做 demo：具身 memory service。** 以对象/voxel 为实体，支持 TTL、置信度衰减、来源、冲突、快照与 replay；先在仿真测试“物体移动后的幽灵记忆”。
+4. **可找合作：affordance/DataOps。** 给数据场/实验室做 heatmap—grasp—trajectory 自动质检、跨本体 adapter 和 lineage，而不是按小时堆采集量。
+5. **观察而非重押：视频世界模型直接控制。** 当前 8Hz/H20、代码未发、接触物理可信度不足；先用于离线 evaluator 和数据合成。
+6. **暂不建议：未经隔离的 VLM 在线关节控制。** planner 错误、视觉 prompt injection、memory 污染都可能变成物理风险，必须经约束投影、独立 verifier 和硬件安全层。
+
+---
+
+## 产品与部署：从“会动”转向“可验收、可运维、算得过账”
+
+本周产品侧不应再按“厂商发布了什么”罗列，而应按客户采购成熟度观察。我们从 28 条候选中筛出 6 个值得保留的对象：两个已出现跨站点或持续运营数据（Tate、Serve），两个处于明确客户首站部署或扩场阶段（goodBytz、States Logistics），一个是认证后才放量的七年绩效框架（HII/HYPR），一个仍停留在无客户指标的产品方案（Avnet/Weston）。这六者恰好构成从发布、试点、生产验证到规模运营的证据阶梯。
+
+### 2.1 HII × Path Robotics × GrayMatter：不是“9 亿美元订单”，而是一条要先过海军级资格认证的自主造船产线（美国·造船）
+
+**成熟度：认证型 PoC → 条件性规模部署；不是已确认收入。**【原文事实】HII 8 月 6 日公告称，与 Path Robotics、GrayMatter Robotics 签署七年绩效型生产协议，拟授予合计最高 9 亿美元造船工作，但前提是两家公司达到技术、制造成熟度以及成本、进度、质量里程碑。协议分两阶段：先开发、验证并认证自主焊接、打磨、喷砂、涂装、装配、检测等工艺，再由 HII 根据表现把小型钢结构逐步扩展到单元和模块。HII 还称 2026 年计划外包超过 250 万工时，同比增加 30%。4 月 20 日的项目原文（背景，非本周）补充：2026 年跑概念验证，2027 年才计划启动完整 pilot；HYPR 不是孤立机器人单元，而是把焊接、物料移动、表面处理和质量检查串成一条连续结构制造线。
+
+**目标用户与工序。** 用户不是普通焊接车间，而是 HII 及其分布式供应网络，最终产品要进入航母、潜艇、驱逐舰、两栖舰、护卫舰与无人水面舰。工序从钢板切配、组对、焊接，到打磨/喷砂/涂装、视觉或传感检测，核心痛点是船体结构高混流、尺寸大、焊缝和表面几何变化多，传统固定自动化难覆盖。Path 提供以 Obsidian 焊接模型为核心的视觉/机器学习自适应焊接及 Rove 移动焊接；GrayMatter 提供表面处理、涂装、检测的 Factory SuperIntelligence；HII 提供工艺知识、需求、资格认证和最终验收。公开材料没有说明具体机器人品牌、传感器 BOM、节拍、焊缝一次合格率或各家金额分配。
+
+**部署流程与人在环。** 先选标准件/小钢结构建立工艺包，做海军级 coupon/结构件测试，验证焊接参数、表面质量、NDT/检测结果与追溯数据；再把多设备接到同一产线，经过 HII 的监督、资格认证和过程审计后，才进入交付。人在环不只是远程接管：焊接工程师制定 WPS/PQR，质量人员审批缺陷与返修，安全人员管理受限空间和喷涂/喷砂风险，HII 负责放行。异常工件、传感遮挡、装配偏差和质量判定都需要人工升级路径。
+
+**验收、TCO/ROI 与运维。** 验收应该落在每合格工时成本、一次合格率/返修率、节拍、准时交付、设备可用率、NDT 通过率、材料追溯和安全事件，而不是“机器人完成一条焊缝”。9 亿美元是七年上限且附条件，不能直接当 Path/GrayMatter 收入。ROI 来自减少每船体工时、降低返修、提高外包结构件按期交付率；TCO 则必须计入厂房/产线、工装、传感与边缘算力、耗材、标定、海军资格认证、网络隔离、备件、驻场工程师、停机和返修。运维还要覆盖配方/模型版本控制、离线回放、工艺变更审批和数字线程归档。
+
+**客户侧证据与规模瓶颈。** 最强证据来自买方 HII 的正式公告和按结果放量的合同结构；Path 的同步稿本质上仍复述同一交易，不能算独立客户。瓶颈是多工序耦合、军工资格周期、供应商产能、现场安全、跨工厂一致性以及“看起来焊好”与 NDT 真正合格之间的差距。【独立判断】它是本周商业含金量最高的信号，但价值不在 9 亿美元标题，而在客户已经把机器人采购改写成“认证—里程碑—合格产出”的机制。软件机会是工艺规划 Agent、产线编排、质量证据图谱、模型/配方审批、跨设备可观测性和自动生成资格认证包。
+
+### 2.2 Tate × Hirebotics：58 套焊接 cobot 跨三厂，真正的产品是“焊接配方与权限的云控制面”（美国·数据中心制造）
+
+**成熟度：跨三厂规模部署；生产率口径仍需独立审计。**【原文事实】8 月 6 日 Business Wire 全文（Morningstar 镜像）披露，数据中心基础设施厂商 Tate 在 Arkansas、Virginia、Kentucky 三处工厂部署 58 套 Hirebotics Cobot Welder，2024 年开始从手工焊转向自动化，已经运行约两年。供应商案例称关键结构件“每名焊工吞吐提高 12 倍”，无机器人经验的焊工 10—20 分钟可上手；Tate 操作员 Jonathon Cook 说明，可在软件中控制电流、热输入、行走速度和轨迹，让焊缝按规范执行。该材料有客户员工引语和明确地点/数量，但发布与案例由供应商组织，“12×”未给分母、产品组合、良率、OEE 或审计方法，因此只能标成公司/客户联合口径。
+
+**目标用户、工序和栈。** 目标是面临数据中心建设高峰、交期紧且不能容忍结构错误的金属制造团队。cobot 承担重复焊缝、点固和预装，认证焊工转向需要判断、认证或复杂手工技能的工作。硬件是完整 Cobot Welder 单元（Hirebotics 为 Universal Robots OEM 伙伴，同时具 FANUC 集成资质；本案例未逐台披露机械臂型号）、焊机、焊枪、工装与安全配置；软件是云端 Beacon Pro，无代码编程、手机/平板运行与监控、角色权限、参数和 playlist 跨厂共享。Arkansas 厂还让 cobot 做上游点固和预组装，给下游工业机器人稳定供件，显示它不是单点替人，而是重新切分整条工序。
+
+**部署与人在环。** 先由认证程序员建立焊接程序、角度、速度、热输入等“黄金配方”，用试件验证，再把低风险重复任务交给现场操作员；操作员装夹、选程序、启动、检查并处理异常，焊接工程师负责配方和变更，认证焊工处理复杂件，维护人员负责枪嘴、送丝、耗材、标定与机器人故障。Beacon Pro 允许跨厂复制配方，但这也要求版本冻结、权限、审计和回滚，避免一次错误参数同步到 58 台设备。
+
+**验收、价格与 ROI。** 供应商官网搜索结果给出 Cobot Welder Core Package 起价约 10.5 万美元，但案例没有披露 Tate 的成交价，不能据此计算精确资本开支；若简单乘 58 也会忽略焊机、治具、培训、云订阅、集成和批量折扣。验收至少应看每班合格焊缝长度/合格件数、一次合格率、返工、换型时间、稼动率、操作员覆盖台数、耗材、停机与安全事件。ROI 的可信来源应是减少返工和焊工短缺造成的延期，而不仅是 12×峰值吞吐。交付运维的关键是远程诊断、配方库、设备健康、耗材预测和跨厂 SLA。
+
+**证据边界与瓶颈。** 没有 Tate 自有官网案例、财务披露或第三方审计支撑 12×，多个转载基本同源，不能算多源独立验证。规模化瓶颈包括工件一致性与夹具、焊前准备、工艺资格、云连接/账号安全、跨厂配方治理和维护技能。【独立判断】这比人形机器人视频更接近现金流，因为目标工序、用户、数量、软件和生产改造都可描述；但真正护城河不是 cobot 本体，而是把焊接知识编码、分发、监控、回放并审计的控制平面。对软件/Agent 团队，机会在焊接参数建议、视觉质检、配方 GitOps、异常归因和多厂 OEE，而不是再做一台通用机械臂。
+
+### 2.3 Serve Robotics：有 792 台日活和财务数据，也暴露“规模增长不等于单位经济成立”（美国·配送/医院）
+
+**成熟度：规模运营，而非试点。**【原文事实】Serve 8 月 6 日 Q2 公告披露：季度平均日活机器人 792 台（上季 812、去年同期 160），日均可供服务小时 9,809（上季 10,295）；季度收入 323.8 万美元，其中 fleet services 230.5 万、software services 93.3 万；收入同比增 404%，但成本收入 1,201.7 万美元、毛亏 877.9 万，净亏 6,412.7 万。公司把全年收入指引降至 900万—1,000 万美元，原因之一是 Uber Eats 配送量低于预期并移除下半年预测需求。同时 DoorDash 收入环比增长近 50%，医院业务上半年新增 2 家医院并续签 7 份多年合同。公司称累计部署超过 2,000 台、覆盖约 300 万人口和 4,000 多家餐厅；这项累计口径与“日活 792”不是同一概念。
+
+**用户、工序与系统栈。** 户外产品服务餐厅、平台和末端消费者，完成取餐、道路/人行道导航、交付和异常处置；收购 Diligent 后，室内机器人服务医院内部物资运输。硬件至少包含移动底盘、感知、通信、货舱/交互设备与充电运维设施；软件包括定位导航、障碍预测、车队调度、订单平台连接、远程监督、广告/媒体运营和医院工作流。公告没有披露每次配送成功率、每英里接管、续航、机器人单价、维修频率和具体远程操作比例。
+
+**部署流程和人在环。** 新城市需要地图/运营区域验证、法规与道路许可、商户接入、取放点设计、充电/维护站、远程运营中心和平台订单路由；医院则需要电梯、门禁、消毒、感染控制、护士站/供应链系统和 SLA 集成。人在环应覆盖道路阻塞、身份核验、货舱问题、路线恢复、急停、医院紧急任务和维修派单。公司只公布 supply hours，没有公布其中多少小时有人远程关注，也没有披露每百单人工介入分钟，这是判断毛利是否会退化为“机器人外壳+远程劳务”的关键。
+
+**验收、TCO/ROI 和运维。** 对平台/餐厅，应按每成功订单成本、准时率、取消/丢失、每机器人每日订单、利用率、远程干预、事故和客户满意度验收；医院则看每班完成任务、护士节省步行时间、任务超时、消毒合规与设备可用率。Serve 的公开财务让 TCO 风险可见：本季收入约 324 万美元而成本收入约 1,202 万美元，说明现阶段整体单位经济尚未证明；不能用“收入增长 404%”替代毛利。公司现金与证券 2.404 亿美元可支持扩张，但低于预期的 Uber Eats 量也证明需求侧和平台集中度会直接打击利用率。
+
+**客户证据、交付运维与瓶颈。** 财报、客户续签数量和可供服务小时比发布视频强得多；但 DoorDash/Uber Eats 和医院具体站点的客户侧全文仍有限。规模瓶颈包括城市许可、天气/道路长尾、破坏与盗窃、充电维护、人类监督成本、平台订单密度和室内外两套运维体系。【独立判断】Serve 是本周最有反证价值的对象：它证明“已经规模运营”仍不代表 ROI 成立。软件机会不只在导航模型，而在远程运营编排、每单成本归因、自动恢复、跨城市版本发布、事故回放、平台需求预测，以及把室外配送和医院机器人统一到可观测的 fleet control plane。
+
+### 2.4 goodBytz × Leonardo Hotels：8 平方米模块把“机器人厨师”收缩为可补货、可清洗、可验收的 24/7 Food Station（德国/奥地利·酒店餐饮）
+
+**成熟度：客户首站部署/商业试点；不是连锁规模铺开。**【原文事实】goodBytz 与 Leonardo Hotels 8 月 5—6 日共同宣布，首台 luca 将部署于拥有 510 间客房的 Leonardo Smart Vienna Airport，提供全天候沙拉和 bowl。客户 Leonardo 的独立新闻稿补充：Food Station 从 8 月起成为酒店 24 小时自助服务的一部分，菜品几分钟内制作，冷菜直接食用、热菜需客人在 lobby 微波加热；系统有冷藏单元，每日补货并每日清洁，使用可重复餐具。客户 COO 明确称技术用于增加灵活性而非替代个人服务。这里的“deploys”是新站点投入使用/启动阶段，尚无订单量、利用率、故障率或多酒店扩张数字。
+
+**目标用户与工序。** 目标用户是机场酒店、夜间到店客人和受夜班/厨工短缺影响的运营方。机器人负责从冷藏原料取料、按菜谱计量、在炉位烹饪/混配、出餐及部分集成清洗；人仍负责采购、食安、每日补货、清洁、菜单/过敏原、前台服务和异常处置。背景材料（FANUC，5 月；非本周）揭示硬件：约 8 平方米金属模块内，一台食品级 FANUC LR Mate 操作 8 个炉位、冰箱和集成清洗功能；软件对每张订单动态重算并行工序，以调度炉位、时间和机械臂动作。
+
+**软硬件栈与部署流程。** 硬件包含工业机械臂、食品级密封/材料、高防护等级、炉位、冷藏、配料/容器与清洗模块；软件包括菜谱和批次、订单队列、峰值调度、温度/时间控制、库存、过敏原与清洗日志。部署不能只“把机器人搬进酒店”：要完成给排水、电力、通风/消防、冷链、HACCP/本地食安、菜单工程、原料规格化、POS/支付、动线和重复餐具回收。上线后应先影子运行和食品抽检，再扩大时段与菜单。
+
+**人在环、验收与 TCO/ROI。** 人在环主要是每日补货/清洁、品质抽检、卡料或溢出处理、食品安全放行和客户服务，不是完全无人餐厅。验收要看每份出餐时间、订单完成率、峰值排队、温度/克重偏差、清洗合规、食品浪费、停机、人工分钟/餐、夜间销售增量和顾客评分。价格未披露，TCO 必须计入模块改造、原料规格化、清洗和补货人工、维护、食品损耗、支付/POS、停机时替代餐饮；ROI 应与新增夜间餐饮毛利、减少厨房常驻班次及更长服务时段比较，而不是简单用“替代厨师工资”。
+
+**客户侧证据、运维与瓶颈。** 本对象达到“厂商原文+客户原文”：Leonardo 说明了实际菜品、清洁、冷链、微波加热与人员定位，比厂商的“自主厨房”口号更可验收。交付后需要远程监控、食材批次/保质期、菜谱版本、预防维护和本地 FANUC/模块备件。规模瓶颈是菜单与原料标准化、清洗可靠性、食品法规、峰值吞吐、客人接受度和酒店厨房基础设施差异。【独立判断】这是本周欧洲最有产品意义的案例：不是追求通用人形，而是把工业臂封装进一个边界清晰的服务单元。软件/Agent 机会在订单—菜谱—库存联合调度、HACCP 证据自动化、预测补货、异常客服和跨门店菜谱发布。
+
+### 2.5 States Logistics × Contoro × KUKA：卸柜吞吐翻倍背后，人工仍负责移位、对接和极端货墙（美国·3PL；背景对照）
+
+**时间与成熟度：客户生产部署；原始案例 2026-04-25，背景，非本周。本周 8 月 5 日行业报道只是再次传播，不能冒充本周首发。**之所以保留，是因为它提供现有文章其他对象缺失的部署流程、人工边界和 RaaS 计价证据。【原文事实】客户 States Logistics 每月处理 50 多个 floor-loaded trailer/container；过去一个 8 小时班由 2—3 人卸 2—3 柜，引入系统后可卸 4—5 柜。方案以可预测的“按 trailer 计价”RaaS 提供，并要求最低月量，但单价未公开。
+
+**目标用户、工序与栈。** 用户是 3PL 仓库，工序是把无托盘、不同尺寸/重量、可能移位或破损的纸箱从热而狭窄的挂车卸到输送线，再码垛入库。硬件为装在移动底座上的 KUKA KR IONTEC 工业臂、Contoro DuoGrasp 双侧抓具、多摄像头、前向 LiDAR、真空系统、空气压缩机、控制箱和动力输送线；第二台机器人完成从输送线到托盘。软件 AdaptAI 根据货墙、箱体位置/尺寸/状态/重量生成大量无碰撞路径，通过 KUKA.SensorInterface 消化视觉与空间数据，决定顶部或侧面抓取。
+
+**部署流程和人在环。** 操作员用手持控制器像开叉车一样在仓内移机、对准 dock，约 15 分钟完成设置；系统随后随货墙后退自主向 trailer 内推进。冷藏柜的沟槽地板要求改轮子和感知阵列，说明现场调试不可省。严重移位时人工先把货墙纠正，破损件由摄像头记录；工业臂在 trailer 封闭空间作业，入口有便携围栏和磁锁，破锁即停。也就是说“自主卸柜”并非无人：人负责移动、dock 对接、安全区、极端货墙、破损与恢复。
+
+**验收、TCO/ROI、交付运维。** 可核验指标是每班 4—5 柜对 2—3 柜、15 分钟换 dock、箱损、每柜人工、接管次数、抓取成功、卡箱/掉箱、安全事件和设备可用率。RaaS 将 CAPEX 转为 OPEX并把部分设备残值/维修风险留给 Contoro，但最低月量会使低利用率客户失去经济性。真正 ROI 还包括背部工伤索赔、合同工波动、可预测排班和货损；TCO 包括客户电源、dock 改造、网络、最低量承诺、围栏、安全培训、现场响应和备件。运维需按箱型/冷藏柜维护感知与抓取策略，并持续跟踪每柜例外率。
+
+**客户证据与规模瓶颈。** KUKA 案例大量引用 States Logistics 销售运营总监 Jesse Sevilla，且客户官网有“一年运行”相关页面线索；它比只看供应商标题强，但完整量化仍由合作方案例提供。瓶颈是严重移位、破损软包装、异形/透明/反光箱、冷藏柜地面、dock 差异和最低任务密度。【独立判断】按柜付费把供应商与客户结果对齐，是比“买机器人”更成熟的产品设计；但也会把长尾例外、维护和低利用率留在供应商损益表。适合软件团队做例外分类、远程协助、每柜成本归因、WMS 接口与跨站点策略版本管理。
+
+### 2.6 Avnet × Weston Robot：技术栈完整，但没有客户、误报率和价格，只能标为产品方案/早期 PoC（新加坡/亚太·工业巡检）
+
+**成熟度：产品发布/演示，不是客户部署。**【原文事实】8 月 5—6 日公告描述了一套面向工厂、能源、公用事业、交通、物流和关键基础设施的自主巡检平台：AMD Ryzen AI Embedded 端侧算力最高 50 TOPS，3D LiDAR SLAM 支持 GPS 拒止环境，视觉/热成像用于物体与异常、人员车辆、PPE、入侵、热点、泄漏和设备异常检测。公开全文没有客户名、机器人本体型号/价格、续航、IP 等级、爬坡、传感器精度、误报/漏报、部署台数或售后 SLA。
+
+**用户与部署假设。** 目标用户是巡检员、EHS 与设施运维团队。典型部署应先做区域勘测和基线地图，定义巡检点、热阈值/PPE/入侵规则，接入 CMMS/告警平台，受控试跑并与人工巡检对照，再决定是否无人值守。人在环包括告警复核、禁区审批、遥控脱困、传感器清洁、充电和工单闭环。验收不能用“50 TOPS”，而要看路线完成率、定位丢失、每公里接管、热异常检出、误报/漏报、连续工作小时、充电占比、告警到工单关闭时间及危险暴露减少。
+
+**价格、TCO/ROI 与瓶颈。** 所有价格均未披露，ROI 只能建立模型：节省的例行巡检工时+提前发现故障的避免损失+减少危险暴露，减去本体/传感器、现场建图、网络、充电、模型适配、误报处理、维护和折旧。规模瓶颈是粉尘/雨雾/反光、热像标定、跨场景 domain shift、GPS 拒止定位、网络和关键设施数据主权。【独立判断】现文把它写成“可用平台/早期 PoC”方向正确，但还应明确：这是厂商联合 PR，没有客户侧证据，因此不能与 Tate 或 Serve 同列为商业部署。可迁移软件机会在巡检任务编排、告警证据包、CMMS Agent、边缘模型版本/回滚和假阳性运营，而不是 50 TOPS 硬件本身。
+
+### 背景对照：FedEx × Dexterity 为何只能写“7 月 30 日事件，本周被再报道”
+
+Supply Chain Dive 8 月 10 日的正文确实在时间窗内，但其核心事实回指 FedEx 7 月 30 日官方公告。因此正确写法是：**背景，非本周首发**。FedEx 称 Hagerstown 从多年 pilot 扩展到更大生产验证，Mech 双臂用 Foresight 融合视觉、深度和触觉做 trailer loading；但官方没有披露台数、每小时箱数、空间利用率、接管、可用率和 TCO。它可作为“客户生产验证如何表述”的对照，不能为了凑本周对象写成 8 月新部署。
 
 ## 3. 投资融资与资本市场：硬件、数据、自动化工厂三线并行
 
