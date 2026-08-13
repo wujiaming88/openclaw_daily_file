@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-08-13
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施研究周报](research/2026-08-13-global-ai-agent-infra-weekly.md) | research | 黄山×4+小帅 | 本周最清晰的变化，不是某个 Agent 模型再变强，而是 **Agent Harness 的生产化边界正在被重新定义**：运行时开始支持 14 天级持久会话与专用计算；授权从单次 API 请求升级到可读取完整行为轨迹的 temporal policy；Agent 获得独立企业身份；Memory 从向量检索 API 升级为能组装上下文、自动提交会话、管理 lineage/ACL 的 Context Database；企业平台则把 Runtime、Gateway、Identity、Sandbox、Observability 串成控制面。 本周 TOP 5 时间窗：2026-08-06 00:00—2026-08-12 24:00（Asia/Shanghai）。窗口外信息只作背景，不计本周动态。检索与原文核验于 2026-08-13 完成。 本周模块结论 |
+
+---
 ## 2026-08-12
 
 | 文件 | 目录 | 产出人 | 说明 |
