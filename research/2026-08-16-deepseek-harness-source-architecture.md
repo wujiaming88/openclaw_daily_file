@@ -506,3 +506,19 @@ Web bundle 目前禁用共享 module HMR，只保留 launcher 的 config-only wa
 因此，对风险的判断也应保持分层。配置错误首先是 Loader/依赖拓扑问题；模型错误是 LLM failure 与 turn reason 问题；工具错误是 materialized result 问题；持久化错误是 append/recovery/revision 问题；UI 错误是 projection/transport 问题。若把所有错误都压成一个 Error，系统会失去恢复方向；若把所有能力都放入一个 root scope，系统会失去隔离方向；若把所有数据都存成一份可变 conversation，系统会失去重放方向。
 
 最终可以用一句话概括源码取舍：**Harness 把扩展自由度放在插件图和事件中，把一致性要求收紧在 Fiber ownership、Session append、工具结果提交、请求 header 和平面边界上。** 只要新增代码尊重这些提交点与所有权，系统可以继续扩展；一旦绕过它们，即使局部测试通过，也可能在 HMR、取消、重启、多 session、replay 或打包环境中失败。
+
+## 32. 运行时观测与排障路径
+
+当一个 profile 启动异常，第一层看 launcher 输出：`installFailLoud()` 会把未处理 rejection 标为 fatal load failure；第二层看 `assertEntriesActivated()` 的条目清单，区分 import failed、FAILED 与 PENDING，并从 PENDING Fiber 的 inject map 找缺服务。不要只看 Loader 的顶层 AggregateError，因为它常只是多行 row failure 的包装；应沿 Error.cause 找最深插件栈。对于浏览器端，`AppWebEntry` 保留 loading shell，并把 client entry sweep 失败投到页面 error state；这比空白页更接近真实拓扑问题。
+
+当一次对话异常，先检查 session event 序列而非 UI 截图。`turn/start` 到 `turn/end` 包住一轮；每个 `step/start/end` 包住一次模型请求或工具反馈；有 `assistant/chunk` 但无 `assistant/message` 通常是流中断；有 `tool/call` 无 `tool/result` 则应检查 scheduler failure、进程中断或恢复逻辑。`request/header` 和 `request/context` 能说明当时选中了哪个 provider/model、工具 schema 是否变化、adapter 是否补入默认参数。由 event log 反查，比从可变内存状态猜测可靠。
+
+当能力在某个 preset 中“看得到却用不了”，检查三项：该工具是否在该 scope 的 ToolRuntime view 可见；它所依赖的 host registry 是否仍在 root plane；preset 是否因未隔离 service 而被 mount audit 拒绝。若 Host API 读不到 agent-private service，不能粗暴把 service 提到 root，而应先判断这个读取是否应当经 `serviceForAgent()` 按 agent identity 定位。反之，若服务必须在 session 创建前被 webserver/API row inject，它本来就不应藏进 preset。
+
+当配置热更新似乎没有生效，检查修改的是 profile patch、home patch、settings 文档还是 preset 文件：前三者有不同 watcher/consumer 语义，preset discovery 是下一次 resolve 重新扫描，但已运行 session 默认不会自动迁移。再检查该字段是否是启动期 composition（例如 `agents`）还是运行期 getter（例如工具并发上限）；前者需要明确重建生命周期，后者才可能在下一次操作直接反映。
+
+这些排障路线再次证明，Harness 的可观测性并非额外日志功能，而是架构本身的一部分：Fiber state、Loader entry、Session event、request header、tool result meta 和 client loader status 分别对应不同层的事实。按层读取可以缩小问题，而跨层直接猜测往往会误把根因当成模型“随机性”。
+
+以上路径也适用于代码评审：先固定运行 profile 与 session 边界，再确认服务作用域、事件提交点和 disposer 归属，最后才讨论局部实现与性能。这样能避免把跨层故障误修成临时补丁。
+
+报告的图、路径和符号均以本次 shallow clone 的固定 HEAD 为准；读者在后续版本复核时，应先比较 commit 与对应 package 配置，再判断差异是实现改动、装配改动还是文档同步滞后。
