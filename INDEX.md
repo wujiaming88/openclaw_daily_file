@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-08-16
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [DeepSeek Harness 源码架构精读](research/2026-08-16-deepseek-harness-source-architecture.md) | research | 黄山×泰山+小帅 | 基于官方仓库 HEAD `47f9438` 精读 monorepo、CLI/Web 启动链、vendored Cordis、AgentLoop、Session、工具并发、Preset、Sandbox、Storage、Scheduler、测试与构建，含组件图、时序图和 turn 数据流图。 |
+| [DeepSeek Harness 文档与设计精读](research/2026-08-16-deepseek-harness-docs-design.md) | research | 黄山+小帅 | 基于官方仓库与官网整理 Harness 定位、Everything is a Plugin 的边界、Cordis、Profile/Bundle/Preset、Session 事件溯源、Subagent/Workflow、安全边界、Developer Preview 风险及 36 条官方证据矩阵。 |
+
+---
+
 ## 2026-08-14
 
 | 文件 | 目录 | 产出人 | 说明 |
