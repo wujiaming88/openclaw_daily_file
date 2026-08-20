@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-08-20
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施研究周报 · 第 10 期](research/2026-08-20-global-ai-agent-infra-weekly.md) | research | 黄山×4+小帅 | **证据口径**：只有发布时间或提交时间可确认落入窗口的原始公告、文档、release、commit 才计为本周动态；窗口外信息只作背景。GitHub stars/forks 为 2026-08-20 快照，不代表周增量。 本周 Agent 基础设施的竞争，不是“再造一个 Agent 框架”，而是把 **恢复、权限、执行、记忆与治理**做成可验证的系统契约：Harness 控制层集中补 checkpoint、resume、approval 与父子执行链；Sandbox 开始在宿主侧强制网络出口；MCP 工具层从协议接通进入凭据绑定、session routing 与 SSRF 防护；Identity 从 OAuth scope 走向 actor delegation 与参数级一次性批准；Memory 则被两次“向量静默丢失”事故推入数据库可靠性阶段；Observability 开始把人工批准与工具轨迹纳入完整 trace。… |
+
+---
 ## 2026-08-19
 
 | 文件 | 目录 | 产出人 | 说明 |
