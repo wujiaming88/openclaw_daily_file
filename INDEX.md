@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-08-27
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施研究周报 · 第 11 期](research/2026-08-27-global-ai-agent-infra-weekly.md) | research | 黄山×7+小帅 | **证据口径**：只有发布时间、迁移截止时间或提交时间可确认落入窗口的官方公告、文档、release、commit 才计为本周动态；窗口外信息只作背景。GitHub stars/forks 为 2026-08-27 快照，不代表周增量。 本周 Agent 基础设施的主线不是“谁又多了一个 Agent builder”，而是**谁能声明并执行清晰的运行边界**。Microsoft 用不自动迁移的 Hosted Agents backend 退场，强制确定每 session sandbox、durable files、per-agent identity 与多协议 endpoint 的 Runtime ABI；Google 把 Antigravity coding agent 纳入 Gemini Enterprise 的 license、预算、browser/MCP policy 与集中审计；OpenClaw 以 extern… |
+
+---
 ## 2026-08-26
 
 | 文件 | 目录 | 产出人 | 说明 |
