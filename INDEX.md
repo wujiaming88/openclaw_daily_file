@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [DeepSeek Harness 全景跟踪报告｜2026-08-28](research/2026-08-28-deepseek-harness-radar.md) | research | 黄山×3+小帅 | | 完整性 | **通过** | 技术线覆盖版本、官方模块、接口、调用链、工程成熟度；生态线覆盖插件、案例、衍生、商业、竞品与行动 | 2. TOP 8 关键变化 ACP 现覆盖初始化、认证、session new/list/resume/close、模型配置、prompt、cancel、update、permission 与 MCP。一次 prompt 内 provider/model/effort 会被 pin，配置变更只影响下一 turn；close 应先阻止新工作，再取消 admission/Agent、drain update/descendant、flush persistence。 |
 | [全球 AI+ 产业研究周报 · 第 9 期（2026-08-21 ~ 2026-08-27）](research/ai-industry/2026-08-28-global-ai-industry-weekly.md) | research/ai-industry | 五岳研究组+小帅 | 覆盖 5/5 一级行业、32/32 二级行业；有料原始计 29、跨行业去重后约 27。TOP5 聚焦英矽智能商业兑现、Google 法律/金融垂直 Agent、香港 1823 流程改造、WSU 物理实验闭环及中国三项产业政策；三篇政策官方全文通读，完整保留静默、获取失败、数据口径与证据缺口。 |
 
 ---
