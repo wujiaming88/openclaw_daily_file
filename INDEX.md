@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [中国武汉光谷资讯周报 · 第 13 期（2026-08-24 ~ 2026-08-30）](news/2026-08-31-wuhan-guanggu-weekly.md) | news | 黄山×3+小帅 | 覆盖区间**：2026-08-24（周一）00:00 → 2026-08-30（周日）24:00（上海时区，完整自然周） 覆盖板块**：7/7（投融资、企业动态、政策新闻与招商、人才引进、人才招聘、土地出让、营商环境；城市建设作为扩展观察同步覆盖）。 证据口径**：只有时间窗内首次发布、发生或由权威来源新增披露的事项计为“本周动态”；8月23日及以前材料只作背景并显式标注。企业采访中的客户、订单、ARR、benchmark与量产目标不等于第三方验收；未披露即写“未披露”。 湖北把具身智能、场景征集、上市后备与青年科研人才放进同一条AI产业链工作链，光谷则用研发绩效补贴、芯片“5分钟协同圈”、中试平台和复合产业空间强化承载；但本地Agent、大模型和机器人企业的本周公开客户、定价与交付证据仍偏弱。 |
 | [全球 AI 动态周报 · 第 14 期（2026-08-24 ~ 2026-08-30）](research/2026-08-31-global-ai-weekly.md) | research | 黄山×4+天山+小帅 | 覆盖固定41个槽位及新增1X，去重后38个对象；TOP5聚焦NVIDIA FY2027 Q2与Rubin、OpenAI Jalapeño、MiniMax财务与云成本、Figure Index、优必选财务量产。原子信息 O=38/F=50/D=50/J=50/L=69，研究与文章双向门控通过。 |
 | [Claude Managed Agents：把 Agent 编排交给平台，把执行边界留在自己手里](research/2026-08-31-claude-managed-agents-self-hosted-sandboxes.md) | research | 小帅 | 基于 Anthropic 官方文档拆解 Managed Agents 的 Agent/Environment/Session/Event 模型、自托管 Worker、数据边界、Memory 同步、MCP Tunnel、安全责任、AWS 差异与企业采用判断；覆盖 12 个核心对象、58 条可核验事实、19 个数值或限制、11 条架构判断与 16 个唯一来源链接。 |
 | [全球 AI Agent 研究周报（2026-08-24 ~ 2026-08-30）](research/2026-08-31-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 覆盖54个固定对象/对象组；本周主线从benchmark竞争转向独立身份、隔离执行、跨重启恢复、可归因证据与业务计费单元。TOP5聚焦Perplexity本地优先Agent栈、Glean企业身份控制面、Dify生产栈、Claude Code最小权限与MalPR可归因评测。 |
