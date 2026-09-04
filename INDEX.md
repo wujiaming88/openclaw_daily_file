@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [DeepSeek Harness 全景跟踪报告](research/2026-09-04-deepseek-harness-radar.md) | research | 黄山×3+小帅 | 官方包图已经按当期源码覆盖 **49/49 package groups**，并补充 apps/native/vendor/website/python workspace 层；生态出现 `dsh-market`、`dsh-trading`、`dataelement/dsh-desktop` 等新的产品化信号。 | `dsh-plugin-bridge` 0.3.2 | npm integrity、SLSA、OIDC trusted publisher、tests/typecheck/dataset/package smoke | Session migration、Remote/UI、preset；peer 仍未明确覆盖 alpha.3 | B；隔离、假会话、锁 digest | 1. 在一次性 VM/独立 OS 用户、假凭据、锁 `0.1.2-rc.1` 与 SHA 的环境中跑 Web/headless/SDK/ACP… |
 | [全球 AI+产业研究周报（2026-08-28—09-03）](research/2026-09-04-global-ai-industry-weekly.md) | research | 小帅 | 聚焦AI进入设备与存量系统、受约束代理进入组织流程，以及治理、支付和采购成为落地基础设施；覆盖五个一级行业、32个二级行业，保留静默与获取失败边界。 |
 
 ---
