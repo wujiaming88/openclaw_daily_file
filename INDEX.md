@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [DeepSeek Harness 全景跟踪报告](research/2026-09-08-deepseek-harness-radar.md) | research | 黄山×3+小帅 | generation 不原地覆盖，有利于回溯和离线校验。 升级闸门应至少覆盖：v0/v1 样本只读 open、write migration、generation/hash/count、并发锁拒绝、进程崩溃尾部修复、resume、fork、title/projection、附件、schedule、query、旧版本只读回滚。没有这套测试，不应覆盖现有 home。 官方在一周内引入 SessionHandle、async loop、lock 和 v2 migration；生态中 IM 只明确兼容 alpha.1，cost-meter 明确兼容 alpha.2，而 market 的部分 peer 仍落在 0.1.2 系列。技术 seam 已被消费，但兼容速度不一致。结论：任何生态评估都必须以宿主版本、profile、Session format 与具体包版本为四维矩阵，不能用“最新版”三个字代替。 1. 在一次性 VM/容器或… |
 | [具身智能机会雷达周报（2026-09-01—09-07）](research/2026-09-08-embodied-ai-opportunity-radar.md) | research | 黄山×4+小帅 | 研究门控 PASS：覆盖七面雷达与产业链八环节；深拆 8 个技术对象、7 个产品/部署对象。核心判断是竞争重心正从单次演示转向可验证运行系统，机会集中在失败恢复、运行时契约、Real-to-Sim 可信编排、Robotics Ops 与合规工具。 |
 
 ---
