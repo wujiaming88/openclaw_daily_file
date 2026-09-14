@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-09-14
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 研究周报｜2026-09-14](research/2026-09-14-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 覆盖9月7—13日、49个对象/主题槽位，含26个有料事件；TOP5聚焦OpenAI Agents API、Salesforce岗位Agent、SWE-Bench Pro Verified、OpenClaw与Hermes。完整保留研究母稿、三条主线、双雷达、原文来源、静默说明与证据边界；Genspark仅列未核验线索。 |
+
+---
 ## 2026-09-11
 
 | 文件 | 目录 | 产出人 | 说明 |
