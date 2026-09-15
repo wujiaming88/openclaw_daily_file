@@ -36,6 +36,8 @@ OpenAI 于 2026 年 9 月 10 日推出公开 beta 的 Agents API，开放 Codex 
 
 *图 2｜控制面与执行面边界示意图。根据 [OpenAI Architecture](https://developers.openai.com/api/docs/guides/agents-api/architecture)与 [Claude 自托管沙箱指南](https://platform.claude.com/docs/en/managed-agents/self-hosted-sandboxes)整理，2026-09-15。自托管改变工具执行位置，不意味着所有数据留在本地。*
 
+### 执行环境的选择
+
 OpenAI 提供三种环境模式：`none` 没有自己的 Linux 工作区，但可以调用远程 MCP 和应用 function tools，工具驱动的任务未必需要完整沙箱；`openai_hosted` 由 OpenAI 准备 Linux 环境，支持预装 packages、初始文件、setup commands、skills 和 plugins；`self_hosted` 则由应用管理环境与 executor，适用于私网、定制镜像和特殊计算资源。
 
 E2B、Modal、Daytona、Cloudflare 等官方伙伴可以提供不同的 CPU、GPU、VPC 或存储配置，但不能据此认为 OpenAI 默认沙箱具有全部这些规格。[O1](https://openai.com/index/introducing-the-agents-api/)[O3](https://developers.openai.com/api/docs/guides/agents-api/architecture)[O6](https://developers.openai.com/api/docs/guides/agents-api/environments/openai-hosted)
@@ -43,6 +45,8 @@ E2B、Modal、Daytona、Cloudflare 等官方伙伴可以提供不同的 CPU、GP
 Claude Managed Agents 提供 `cloud` 与 `self_hosted` 两种环境，可使用厂商托管环境，也可在应用自己的基础设施执行；工具包括 Bash、文件操作、Web Search 与 Web Fetch。[A1](https://platform.claude.com/docs/en/managed-agents/overview)[A9](https://platform.claude.com/docs/en/managed-agents/self-hosted-sandboxes)[A14](https://platform.claude.com/docs/en/managed-agents/cloud-sandboxes-reference)
 
 两项服务都支持持续会话、上下文压缩和追加输入以继续或引导工作，Claude 还明确提供中断与临时错误重调度。这些能力减少运行系统的维护负担，并不取消应用对任务成败的责任。OpenAI 虽然使用 Codex harness，官方示例却不限于编码，还覆盖事故调查、Slack 工作助手、数据分析、GitHub 问题调查与文档审阅：复用的是持续运用工具、文件和代码的能力。[O1](https://openai.com/index/introducing-the-agents-api/)[O2](https://developers.openai.com/api/docs/guides/agents-api/overview)
+
+### 工具调用与多 Agent 协作
 
 工具如何提供给模型、如何进入子 Agent，以及上下文如何分配，是接入时的另一个区别。两家都有原生多 Agent 协作，也都支持 MCP 与自定义业务工具。
 
@@ -88,6 +92,8 @@ Claude coordinator 只能委派**一层**，roster 最多 **20 种 Agent**，最
 
 ## 权限与恢复的边界
 
+### 授权、凭据与数据合规
+
 托管工具执行，不等于替应用决定业务授权。Claude 的权限策略有 `always_allow`、`always_ask` 和 `auto`；内置 agent toolset 默认允许，MCP 默认询问。`auto` 是平台自动判断，可能直接放行，并非人工审批。**Custom tools 不受这些策略治理，授权与审批仍由应用实现**；OpenAI function tools 同样由应用处理。[O9](https://developers.openai.com/api/docs/guides/agents-api/tools/functions)[A6](https://platform.claude.com/docs/en/managed-agents/permission-policies)
 
 高风险动作因此需要应用层准入与审批。网页、工具返回和文档可能含恶意指令，不能获得与用户授权相同的地位。凭据管理也要分清适用范围：OpenAI Vault 用于 OpenAI 服务发起的 MCP 连接，环境端凭据另行管理。[O8](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults)
@@ -95,6 +101,8 @@ Claude coordinator 只能委派**一层**，roster 最多 **20 种 Agent**，最
 Claude 除 MCP Vault 外，还在云环境变量中提供 opaque placeholder：真实 secret 不直接放进沙箱，而在出站请求中替换，可限定目标 host 及 header/body 位置。但需要在本地用 secret 计算签名的客户端不能直接使用占位符；换取的新 token 返回沙箱后不保证继续遮蔽；`environment_variable` Vault 当前也不支持 self-hosted。这不是通用凭据兼容层。[A7](https://platform.claude.com/docs/en/managed-agents/vaults)
 
 数据合规须落实到具体产品端点与合同。OpenAI Agents API 当前仅支持美国 data residency、不支持 ZDR，自托管不会改变这项资格；Claude Managed Agents 同样不支持 ZDR，也不适用 HIPAA BAA 覆盖。基础模型 API 的资格不能直接推到托管服务，工具在内网运行也不代表内容不会进入厂商控制面。[O2](https://developers.openai.com/api/docs/guides/agents-api/overview)[A1](https://platform.claude.com/docs/en/managed-agents/overview)
+
+### 故障恢复与交付
 
 长任务的恢复则要分别看三件事：工作记录是否还在、执行环境能否继续、业务动作是否真正完成。两家都提供 SSE 与 webhooks；OpenAI 可获取 items 和 turns、在平台查看 trace，Claude 提供完整持久事件及 thread、outcome、usage 等事件，但“可恢复会话”不是任何失败都能无损恢复。[O5](https://developers.openai.com/api/docs/guides/agents-api/sessions/events)[O11](https://developers.openai.com/api/docs/guides/agents-api/observability)[A12](https://platform.claude.com/docs/en/managed-agents/events-and-streaming)
 
