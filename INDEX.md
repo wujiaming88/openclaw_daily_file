@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [具身智能机会雷达周报｜2026-09-08 ~ 2026-09-14](research/2026-09-15-embodied-ai-opportunity-radar.md) | research | 黄山×4+小帅 | 本期窗口：2026年9月8日00:00—9月14日24:00，Asia/Shanghai。来源阅读日统一为2026年9月15日。论文提交时间按上海时间判断；发布日期、文件签发日、事件发生日、未来计划与累计期间分别标明。窗口外资料均作为“背景，非本周”，不计本周新成果。 本周更值得软件工程师和AI Agent从业者下注验证的，不是再造一个通用本体，而是模型与动作、仿真与实机、机器人与业务系统之间的接口，以及上线后的故障恢复和交付证据。** 这是对本期论文、产品、融资、采购和政策样本的研究判断，不是资金已全面转向软件、机器人已普遍盈利或自主安全已获证明的事实结论。 阅读方法：把“会做动作”与“能交付工序”分开 本期材料形成三条相互连接、但不能互相替代的证据链。研究端在重构动作接口、视觉反馈和接触数据；产品端将仓库混托、机器人售后、工厂编排写成更具体的供给；需求与政策端开始明确开发、测试、安全事件响应和多年维护责任。论文成功率不… |
 | [report2article标题层次纠偏与文章验证](engineering/2026-09-15-report2article-heading-balance-verification.md) | engineering | 小帅 | 双向审查过密与过粗；指定文章局部恢复层次，12项规则+16项结构测试、桌面/手机及双域部署验收通过。 |
 | [OpenAI Agents API 与 Claude Managed Agents：架构、能力与差异（博客文章）](research/2026-09-15-openai-agents-api-vs-claude-managed-agents-article.md) | research | 小帅 | 已局部恢复必要章内层次的读者版，含4张架构/责任示意图（封面+3张正文）、5张对比表与27项官方来源。双向审计交付口径8对象/72事实/19数据点/18判断/27链接；保留beta、未付费实测及POC未运行边界。 [博客](https://wujiaming88.github.io/2026/09/15/openai-agents-api-vs-claude-managed-agents.html) |
 | [OpenAI Agents API 与 Claude Managed Agents：托管 Agent 运行平台比较](research/2026-09-15-openai-agents-api-vs-claude-managed-agents.md) | research | 小帅+黄山资料核查 | 基于两家官方文档比较托管harness、多Agent、沙箱、定时、记忆、权限、恢复及当前计费；含选型建议、POC方案与27项官方来源。明确两者beta、自托管非ZDR、业务验收及容器计费资格未验证边界，未运行付费API。 |
