@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-09-15
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [OpenAI Agents API 与 Claude Managed Agents：托管 Agent 运行平台比较](research/2026-09-15-openai-agents-api-vs-claude-managed-agents.md) | research | 小帅+黄山资料核查 | 基于两家官方文档比较托管harness、多Agent、沙箱、定时、记忆、权限、恢复及当前计费；含选型建议、POC方案与27项官方来源。明确两者beta、自托管非ZDR、业务验收及容器计费资格未验证边界，未运行付费API。 |
+
+---
+
 ## 2026-09-14
 
 | 文件 | 目录 | 产出人 | 说明 |
