@@ -13,6 +13,18 @@ toc: true
 toc_sticky: true
 ---
 
+<style>
+/* 架构对比图：让被链接包裹的图片保持块级显示，并去掉链接下划线动效 */
+.post-content a[href$="2026-09-22-tca-beyond-react-compare.png"] {
+  display: block;
+  background-image: none;
+  border-bottom: none;
+}
+.post-content a[href$="2026-09-22-tca-beyond-react-compare.png"]:hover {
+  background-size: 0;
+}
+</style>
+
 上一篇写 TypeSafe 的 Jev 时留下一个问题：**那些"下一步该不该继续""这个工具调用危不危险""该上哪个模型"的微小判断，值不值得从大模型里拆出来，做成独立的一层？**
 
 这个问题如果只谈架构，很容易变成各说各话。所以我实现了一个可跑的最小版本，用真实模型、真实 token 计量跑了三组实验。结论有几个与直觉相反，其中一个直接推翻了我自己在假设数据下得出的判断。
@@ -51,6 +63,27 @@ ReAct:  Thought ──────────────→ Action
 TCA:    Route → (Think) → Select → Act
         ↑前置            ↑后置
 ```
+
+左边是 ReAct：整个循环只有一次生成，思考与选择被压在同一格里——`Thought: … Action: read_file {…}`，代码再靠正则把工具名抠出来。**这一步不是决策，是提取。** 下方虚线框列的是它在结构上没有的东西：没有档位切换、没有执行前闸门、没有降级层、没有可审计字段。
+
+右边是 TCA：`① Route` 在最前面（档位不能等钱花完了再定），`② Think` 带着一条明确的跳过旁路，`③ Select` 条件于思考结果，然后**在执行之前**先过闸门。同一件事，多出了三个 ReAct 结构里不存在的位置。
+
+[![ReAct 与 TCA 架构对比：左侧为 ReAct 单次生成融合思考与选择，右侧为 TCA 的 Route / Think / Select / 闸门 / Act 五步流程](/assets/images/posts/2026-09-22-tca-beyond-react-compare.png)](/assets/images/posts/2026-09-22-tca-beyond-react-compare.png)
+
+*图：左为 ReAct，右为 TCA。据本地实现绘制，2026-09-22。点图可看原尺寸（移动端文字较小，建议点开）。*
+
+把差异拆到维度上看：
+
+| 维度 | ReAct | TCA |
+|---|---|---|
+| 选择的位置 | 藏在生成文本里，需正则解析提取 | **显式强类型对象**（action / tool / tier） |
+| 单步模型调用 | 1 次，且**必须用最强档** | 2–3 次，**多为便宜档** |
+| 模型档位 | 全程同一档，无切换能力 | 按步切换：Route 决定档位 |
+| 思考是否可省 | 不能，每步都要生成 | 能，Route 判为常规步则整步跳过 |
+| 控制流归属 | 模型 | **代码**（模型只回答封闭问题） |
+| 可审计性 | 读自然语言轨迹 | 查结构化字段 + reason + confidence |
+| 安全闸门 | 事后判断或缺失 | **执行前**拦截：白名单 / 危险工具 / 置信度 |
+| 失败降级 | 无内建回退层 | 选择失败 → 规则回退（规则层常驻） |
 
 **为什么是两个选择点，而不是插入一个？**
 
