@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-10-01
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施研究周报 · 第 15 期（2026-09-24 ~ 2026-09-30）（研究母稿）](research/2026-10-01-global-ai-agent-infra-weekly.md) | research | 黄山×4+小帅 | 覆盖模块: 模块1 Harness / Agent OS 控制层、模块2 Runtime / Session / State 执行层、模块3 Sandbox / Computer Use / Browser 执行环境层、模块4 Tool Gateway / Protocol / Integration、模块5 Identity / Auth / Permission、模块6 Context / Memory / Knowledge、模块7 Observability / Eval / Guardrails、模块8 Managed Agent Platform / Enterprise Control Plane（8/8） 覆盖平台: 7 个云厂 / 平台（AWS Bedrock AgentCore、Google Gemini Enterprise Agent Platform、Microsoft Foundry、阿里云百炼… |
+
+---
 ## 2026-09-30
 
 | 文件 | 目录 | 产出人 | 说明 |
