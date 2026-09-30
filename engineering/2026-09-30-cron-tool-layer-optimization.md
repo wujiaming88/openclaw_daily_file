@@ -102,13 +102,48 @@ diff 规模：`SKILL.md` 3 个 hunk，`helper-contract.md` 1 个 hunk；**全部
 
 ## 六、未做的动作（需另行授权）
 
-1. **技能仓库副本回灌未做。** `project/skills/cron-run-reliability/` 是本技能的仓库副本，但**改前即已与 workshop 版本不一致**（5 个文件存在差异），属历史兼容副本；同步回仓库是独立授权项（`workshop-skill-edit` 第 5 节）。
+1. ~~**技能仓库副本回灌未做**~~ —— **已授权并完成（2026-09-30 14:5x）**，见下节「七」。
 2. 未改动 `reliable_cron.py` 及任何调度配置、超时、模型路由、工具白名单。
 3. 未新增定时任务（16 → 16）。
 
 ---
 
-## 七、回滚
+## 七、技能仓库副本回灌（2026-09-30）
+
+**目标仓库**：`wujiaming88/skills`（PUBLIC，git@github.com:wujiaming88/skills.git），检出 `/root/.openclaw/workspace/project/skills`。
+
+### 方向判定（逐文件，不整体覆盖）
+
+先 `git fetch origin`，确认检出与 `origin/main` 同为 `3d81177`（未落后），再逐文件读内容判定。
+差异 6 个文件，**方向均为 Workshop → 仓库**，无任何“仓库领先”文件：
+
+| 文件 | repo 哈希 → workshop 哈希 | 仓库落后原因 |
+|---|---|---|
+| `SKILL.md` | `c41b2766` → `016787d8` | 缺 L1–L4、§5 权威声明、阶段占位核对、forbidden 处理 |
+| `references/config-audit.md` | `01cf369b` → `5751f72e` | 缺“取数入口”整节与 `automations edit --tools` 警告 |
+| `references/common-failure-playbook.md` | `c36978d6` → `ea3823fe` | 缺“失败告警”与错误文本分两支 |
+| `references/design-boundary.md` | `4a2b47ad` → `3aa5d22f` | 缺 `blog-article-publish` 条目 |
+| `references/weekly-publication.md` | `b61d8dba` → `ccae3073` | 未去重（仓库版仍内含重复全文，Workshop 已改为路由主文件 §5） |
+| `references/helper-contract.md` | `ffee8807` → `5a1ec711` | 等待标记口径对齐（本次改动） |
+
+其余 5 文件（`research-contract.md`、`weekly-ops-contract.md`、`scripts/`×3）逐字节相同，未改。
+无 `.clawhub/origin.json` 等来源元数据，无压缩包。
+
+### 核验
+
+- 同步后 11/11 文件 SHA256 逐一相同；`diff -rq` 无差异。
+- 回归测试：同步**前**基线 OK、同步**后** 3/3 通过。
+- 敏感信息扫描（凭据前缀 + 本机收件人字面量）：目录 **0 命中**；技能目录内无 zip，无归档内容扫描项。
+- 提交 `30afccc`；`check-git` = `GIT_OK` / `synced: true`。
+- **线上内容核验用 `gh api .../contents/`**（按规程不用 `raw.githubusercontent.com`）：6 个关键词全部在线命中，4 个文件的线上字节数与本地一致（22391 / 4172 / 12782 / 11577）。
+
+### 注意
+
+后台技能维护任务（`skill-collection-review-*`，按周运行）会**直接改写 Workshop 目录而不走提案流程**，因此“本次已一致”不代表以后仍一致；下次同步前必须重跑 `diff -rq`。
+
+---
+
+## 八、回滚
 
 改前全量备份：`shared/artifacts/tool-layer-opt-20260930-101826/`
 （含 `skill-full/cron-run-reliability/` 全目录、10 份 Prompt、改前 cron 快照、SHA256 台账）。
