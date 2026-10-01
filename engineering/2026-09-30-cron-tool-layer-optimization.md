@@ -206,7 +206,7 @@ diff 规模：`SKILL.md` 3 个 hunk，`helper-contract.md` 1 个 hunk；**全部
 
 ### 未署名宿主机改动（同一文件、同日两次）
 
-在本次改动的准备过程中，发现该文件被 **OpenClaw 之外的写入者**（宿主机编辑器或直接 CLI）改动两次，均未留 `audit_events` 痕迹：
+在本次改动的准备过程中，发现该文件被 **提案流程之外的第二个写入者**改动两次（详见第十一节的更正与归因）：
 
 | 时刻 | inode | 字节 | 内容 |
 |---|---|---|---|
@@ -218,3 +218,52 @@ diff 规模：`SKILL.md` 3 个 hunk，`helper-contract.md` 1 个 hunk；**全部
 ### 未生效观察点
 
 规则已生效 ≠ 效果已验证。最近检验点：**2026-10-08（周四）06:00** 全球 AI Agent 基础设施研究周报。届时按首检清单复查 `units/*.done` 是否出现、`wait` 是否按单元枚举。
+
+---
+
+## 十一、第二写入者归因与自主权收口（2026-10-01 23:0x）
+
+### 11.1 更正第十节的错误归因
+
+第十节曾写"被 OpenClaw 之外的写入者改动、未留 `audit_events` 痕迹"——**该结论错误**，已就地更正。原因：查归属时用的是 **13:15 复制的状态库快照**，而两次改动发生在 13:24 / 13:35，**快照早于事件**故查不到；换新快照后审计记录完整存在。
+
+### 11.2 真实写入者
+
+**网关自带的「技能体验回顾」**（实现见 `dist/experience-review-*.mjs`，`runSkillExperienceReview`）：
+
+- 触发：**每个前台回合结束**后自动运行一次；run id `skill-workshop-review:<uuid>`，会话键 `agent:main:internal-session-effects:skill-workshop-review_<uuid>`（控制台不可见，也不出现在 subagents 列表）。
+- 改写范围：`mode === "auto"` 时 `executionRoot = resolveWorkshopSkillsDir(...)` → **直接改 Workshop 技能目录，不建提案、不需确认**；`off` 直接返回；`propose` 走提案且每轮限 1 个（`proposalMutationBudget.remaining = 1`）。
+- 配置缺失即取默认：`DEFAULT_CONFIG = { autonomous: { mode: "auto" }, approvalPolicy: "auto", maxPending: 50, maxSkillBytes: 40000 }`；本机 `openclaw.json` 原先**未写 `skills.workshop`**，故一直是 `auto`。
+
+对照证据：
+
+| 项 | 值 |
+|---|---|
+| 13:24:59 改动 | `run skill-workshop-review:c3721859-…`，13:22:20–13:27:07，50 条 `audit_events` |
+| 13:35:04 改动 | `run skill-workshop-review:97c18364-…`，13:32:11–13:37:54 |
+| 归属查询 | `audit_events.run_id` / `session_key like '%skill-workshop-review%'`；`worker_session_placements.turn_claim_run_id` 亦可 |
+
+**"两只手"= 我（提案流程）+ 网关自动回顾（直接 edit）。** 当日该回顾共运行 7 次（13:41 起至 21:15 止），另直接改写了 `weekly-report-rule-change`（13:44:22）、`workshop-skill-edit`（13:45、13:50:09），以及 cbz001 名下 5 个技能（17:37–21:13）。
+
+### 11.3 收口：`autonomous.mode` → `propose`
+
+- 改动：`openclaw.json` 的 `skills` 内新增 `workshop.autonomous.mode = "propose"`；**+5 行、仅 1 处 hunk**，其余键逐字节未动。
+- SHA256：`6377ba67…` → `363b7655…`；备份 `shared/artifacts/skill-edit-20261001/openclaw.json.before-2301`（另网关自留 `.last-good`）。
+- 生效方式：`skills` 属**热加载**键（见 `docs/gateway/configuration/hot-reload.md`），无需重启；改后 `openclaw config get skills.workshop` 返回 `{"autonomous":{"mode":"propose"}}`，网关未回写该文件（mtime 保持 23:02:42）。
+- `openclaw doctor` 无配置类报错（仅既有的 qqbot `allowFrom`、device-pair、gateway.bind、未设 command owner 等**先前即存在**的告警）。
+- 效果：自动回顾**不再直接改技能目录**，转为每轮至多 1 个提案；待审提案队列默认上限 50（现有 2 个历史遗留：`cron-run-reliability-20260911-12cbf6ceb9`、`software-engineering-discipline-20260616-66367560fe`）。
+
+### 11.4 workshop-skill-edit 的被带偏说明：无需再改
+
+13:45 版曾把错误结论写进规则（"本机编辑器也能绕过工具层整份覆盖…审计记录里都查不到对应事件"）。**该回顾已于 13:50:09 自行改对**，现文为：
+
+> **归属走审计查，不要凭 inode 变化或 `birth == mtime` 断言"外部写入"**（正常整份写入同样表现为新 inode）：按 `audit_events` 的 `run_id` / `session_key like '%skill-workshop-review%'` 定位，或查 `worker_session_placements.turn_claim_run_id`。**查之前先把状态库复制成新快照**——用早先复制的副本会漏掉其后写入的事件，实测据此误判为"无审计留痕"，换新快照后同一改动对应 49 条事件全在。
+
+逐条核验（4/4 属实）：触发点与默认 `auto` 属实；"一次任务内被改两次、间隔仅 10 分钟"属实（13:24:59 → 13:35:04 = 10m05s）；两处查询入口均可复现；"新快照"教训与本次事故完全对应。**故第 4 项不再另提提案**——重写只会把同一课拆成两份表述。
+
+残留检查：全 Workshop 目录仅 `无审计留痕` 一处命中，且是**作为教训被引用**（"实测据此误判为…"），非误述。
+
+### 11.5 未验证项
+
+- `propose` 模式的实际行为**尚未在真实回合后观察**：下一次自动回顾应产出**提案**而非文件改动（`openclaw skills workshop list` 可见）。配置与代码路径已核实，行为待观察。
+- 13:38:51 我对 `cron-run-reliability` 的应用**未被覆盖**：`f2883810…`、mtime 13:38:51 仍在。
