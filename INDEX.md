@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [全球 AI+产业研究周报：去掉「大健康」一级行业](engineering/2026-10-01-weekly-industry-drop-healthcare.md) | engineering | 小帅 | 老板指令「把一级行业的大健康去掉」。范围 5 个一级行业 → **4 个**（工业制造/创意与内容/商业与公共服务/教育科研），医疗健康 6 个二级行业本期起停扫、不计入覆盖实绩，生命科学线索继续挂「教育科研」；覆盖目标 `5/5`→`4/4`、有料建议目标 ≥15→≥12、政策来源去掉卫健委；**分组重排**解决原 B 组 14 个二级行业过载：A 工业制造 / B 创意与内容 / C 商业与公共服务 / D 教育科研+政策（政策主责组仍为 D 组）；改动面 = Prompt 1 文件 18 处 + Cron description 1 字段，调度/投递/超时/模型未动。改前 `a5d8dc53…` → 改后 `3c3e98dd…`，备份与回滚路径已记录。生效于 2026-10-02 06:00 本期。 |
 | [全球 AI Agent 基础设施研究周报 · 第 15 期（2026-09-24 ~ 2026-09-30）（研究母稿）](research/2026-10-01-global-ai-agent-infra-weekly.md) | research | 黄山×4+小帅 | 覆盖模块: 模块1 Harness / Agent OS 控制层、模块2 Runtime / Session / State 执行层、模块3 Sandbox / Computer Use / Browser 执行环境层、模块4 Tool Gateway / Protocol / Integration、模块5 Identity / Auth / Permission、模块6 Context / Memory / Knowledge、模块7 Observability / Eval / Guardrails、模块8 Managed Agent Platform / Enterprise Control Plane（8/8） 覆盖平台: 7 个云厂 / 平台（AWS Bedrock AgentCore、Google Gemini Enterprise Agent Platform、Microsoft Foundry、阿里云百炼… |
 
 ---
