@@ -151,3 +151,23 @@ diff 规模：`SKILL.md` 3 个 hunk，`helper-contract.md` 1 个 hunk；**全部
 回滚 = 把备份的 `SKILL.md` 与 `references/helper-contract.md` 覆盖回
 `~/.openclaw/agents/main/agent/workshop-skills/cron-run-reliability/`。
 **注意**：该目录是 Workshop 技能，直接覆盖会绕过提案流程；正式回滚宜走 Workshop 提案并同样做正文 SHA 核验。
+
+---
+
+## 九、首检结果（2026-10-01 06:00 全球 AI Agent 基础设施周报）
+
+- 运行 `fdf1d555-eefd-429e-a8f2-1180766da7f6`：06:00:00 起、07:05:29 完（预算 120 min，提前约 55 min），终态 `SUCCESS_WITH_WARNINGS`，投递成功（`delivered: true`）。
+- 规则版本核对：`SKILL.md` `016787d8…49fd`、`helper-contract.md` `5a1ec711…419f`，与本文档第四节一致 → **改动未被回滚**。
+
+| 清单项 | 结果 | 证据 |
+|---|---|---|
+| L2 `units/<单元名>.done` 单元标记（先载荷后标记） | **未落地** | run 目录内无 `units/`；`find -type d -name units` 全域命中 0 |
+| 按单元标记枚举的 `wait` | **未出现** | 同上；等待仍只等组级 `line-X.done` |
+| 整文件 `write` 覆盖违规 | 未逐条核验 | 未发现丢片、零字节产物或分片重写 |
+| 断点续跑按集合差集 | 行为上达成 | A 线中断后接管者只补 `line-A-part-07..10`，未重做 part-01..06 |
+| 配图经专用子会话、无 `ActiveTurnClaimError` | 通过 | `TASK-1001-IMG-头图`（子会话）06:18:12→06:19:31；父级仅 `ls` + `cp` |
+
+- **与上一期（2026-09-24）对比**：上期文章两片首轮零/半落盘（`article-second-pass.md` 零落盘，父级被迫按实际状态手写 traceability）；本期两片完整落盘（`article-baseline.md` 39,659 B、`article-second-pass.md` 106,830 B、`article-traceability.md` 10,051 B），未再出现“零落盘”。
+- **同类中断仍发生**：本期 A 线 `LLM request failed: network connection error`，与上期 B 线同类，属网络层错误，非规则可控。差别在代价：本期仅补 4 片（约 4 分钟），零丢失；上期需补缺者合并并重建 `.done`。
+- **L2 未落地的原因（判定）**：L2 规则只写在技能内，而每次运行的产物清单来自主题 Prompt 的 `## Expected artifacts`（仅列 `line-X.done`）。2026-09-30 决定“不动 7 份 Prompt、只靠引用链生效”，导致该条规则未进入执行路径。
+- **结论**：L1/L3/L4 在本次运行中可观察到；**L2 未生效**，须先把单元标记写进执行路径（主题 Prompt 产物清单 + 运行合同模板）才具备可验证性。
