@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-10-08
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施周报 · 第 16 期 · 研究母稿](research/2026-10-08-global-ai-agent-infra-weekly.md) | research | 黄山×4+小帅 | 本周（第 16 期）跨 8 模块的综合判断是：Agent 基础设施的竞争重心已从「能不能编排」整体转向「长时间运行不掉线、可恢复、可审计、以正确的身份与预算触达正确的工具与执行环境」。四股力量同向：① 开源 Agent OS（OpenClaw）与开源编排（LangGraph/ADK）把 session/state 持久化、优雅取消、人工确认做成发布主线；② 模型厂把浏览器/计算机执行工具与网络策略下放进 SDK（Anthropic browser-use/computer-use toolset、`allowed_hosts` 收紧）；③ 云厂把控制面（AgentCore Gateway 私有 CA、Cloud Trace、Foundry Routines）与身份（Entra Agent ID/Consent Portal）持续平台化，并把模型厂 Harness 收编为自家 SKU（Bedrock Managed Agen… |
+
+---
 ## 2026-10-07
 
 | 文件 | 目录 | 产出人 | 说明 |
