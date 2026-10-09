@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [全球 AI 动态周报 · 第 20 期（2026-10-02 ~ 2026-10-08）](research/2026-10-09-global-ai-weekly.md) | research | 黄山×4+小帅 | 分工：A/B/C/D 四组，37 家固定对象（实质覆盖 30 家、静默 7 家、不可核验 0）。NVIDIA 以 A 组为主干，并入 D组-evidence-to-A 的具身投资与 Vera Rubin 部署证据（标注来源）。 2. TOP5 候选（附紧随其后） 一句话判断**：本周企业竞争的重心继续从「模型分数」转向「Agent 入口 + 治理/成本 + 资本债务化」——头部厂商把 Agent 下沉到 OS/设备/企业平台层（OpenAI Intelligent UI、Google Gemini agent、Microsoft MXC/Windows、Meta Muse、NVIDIA RTX Spark），价格战外溢到高并发生产层（Anthropic Haiku 5.5 与 GPT‑6 Luna 同价），同时「中国大模型上市板块」（DeepSeek ≥¥800 亿、月之暗面 $500 亿 Pre‑IPO）与「AI 算力债… |
 | [定时任务规则变更 · 周报运行目录「线上核验件」命名统一](engineering/2026-10-09-cron-online-artifact-naming.md) | engineering | 小帅 | `cron-run-reliability/references/weekly-publication.md` §6 第 9 步就地扩写：线上核验件固定命名 `online-article.html` / `online-image.png` / `html-diff.txt`，属可选证据、不进必交产物清单，禁止以上一期目录清单击本期。改动 +1 行（`ccae3073…` → `0d7523a7…`），提案 `cron-run-reliability-20261009-8c0283da22` 已 apply；skills 仓库回灌 commit `ee6083f` 并线上核验通过。 |
 | [全球 AI+产业研究周报 · 研究母稿](research/2026-10-09-global-ai-industry-weekly.md) | research | 黄山×5+小帅 | 一、本期覆盖实绩（研究阶段实测） 政策材料：已读官方一手原文 **2 篇**（香港数字办「AI+政务」论坛 `info.gov.hk`、香港创科局孙东立法会演辞 `itib.gov.hk`，均 2026-10-06）；官方载体正文另读多篇（香港政府新闻网 2026-09-17 公报、新华网 10-03 报道、地方教育厅/政府网）；美国「超级智能工作组」以 IT之家转述（WSJ/CNN 源登记）、官方章程未取得；**中国内地中央/部委级本周未检索到窗口内可读新政**（检索边界，非「无政策」）；欧盟/其他地域本周无新增。 说明：本期起「大健康」一级行业不再扫描；「音乐与音频」「版权保护与内容治理」「法律/咨询/专业服务」「金融服务/保险/风控」「科学计算/自动化实验室」不再单列、不计入覆盖实绩。 二、本期 TOP 候选（按「对判断 AI 产业化进程的信号价值」排序） |
 
