@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-10-12
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 研究周报（第 19 期 · 2026-10-12）研究母稿](research/2026-10-12-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 覆盖总览 组级覆盖：A/B/C/D 四组固定对象逐一扫描，无动态项均标注核验范围与原因。 TOP5 候选（工程影响力 × 采用信号 × 生态位置 × 可靠性突破 × 新颖度） 1. **Google Gemini agent（10-08，Gemini at Work 2026）**——单一通用企业智能体，子智能体动态编排、coworker agent 拥有独立邮箱与身份，配 Agent Sandbox（独立网络边界）、Agent Gateway（AI 网络防火墙）、审计归因到 agent 而非人、四类记忆（session/semantic/procedural/episodic）。客户点名 BNP Paribas、Bradesco、Orange Spain、SOMPO、Tata Steel、DBS 等（供应商口径）。**为何入选**：本周把「企业 agent 治理」做成产品骨架的最完整发布；同时标志 Google 的纯浏览… |
+
+---
 ## 2026-10-09
 
 | 文件 | 目录 | 产出人 | 说明 |
