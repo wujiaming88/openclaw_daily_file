@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-10-17
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [Mac mini 远程个人 Agent 主机 · 落地 Runbook](engineering/2026-10-17-mac-mini-remote-personal-agent.md) | engineering | 小帅（泰山执行失败后接管） | 目标：家里 Mac mini 常驻为个人 Agent 大脑，iPhone + 公司 MacBook 做客户端；硬约束为公司 MacBook 禁止安装 Tailscale 等客户端、只能浏览器访问 HTTPS。已收敛为「自购域名 + Cloudflare Tunnel + Access」主线（branch A），备选「国内 VPS + frp + Caddy」（branch B）。覆盖：三层架构、mini 加固（SSH 仅密钥/FileVault/防火墙）、常驻保障（pmset/自动登录/launchd 三件套）、OpenClaw loopback+trusted-proxy 配置、code-server/ttyd 藏在鉴权后、端到端验证、故障排查、回滚、安全底线、需实测确认清单。 |
+
+---
+
 ## 2026-10-16
 
 | 文件 | 目录 | 产出人 | 说明 |
