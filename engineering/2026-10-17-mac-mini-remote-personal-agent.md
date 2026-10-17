@@ -636,4 +636,104 @@ sudo systemsetup -setremotelogin off
 
 ---
 
-> 本 runbook 覆盖两条分支、加固、常驻、验证、排障、回滚与安全底线。先落分支 A，跑通后再按需叠加分支 B。
+---
+
+## 附录 A：在 mini 上使用 Codex（编程 Agent）
+
+> 目标：让 mini 上的 Codex 成为你的「远程编程分身」——你从 Telegram 或公司浏览器下指令，Codex 在 mini 上改代码、跑测试。
+> 前置：mini 上 OpenClaw 已按第 5 章装好。两条路线可并存。
+
+### A.1 两条路线
+
+| 路线 | 形态 | 你的入口 | 适合 |
+|---|---|---|---|
+| **甲：OpenClaw 原生 Codex harness（推荐）** | OpenClaw 直接驱动 Codex app-server | Telegram 发 `/codex ...` 或直接对话 | 异步派活、手机下指令 |
+| **乙：纯 Codex CLI + tmux + ttyd** | 原生 Codex TUI 常驻 tmux | 公司浏览器开 `https://shell.域名/` | 想要原生交互手感 |
+
+### A.2 路线甲：OpenClaw 原生 Codex harness
+
+```bash
+# 1) 安装官方 codex 插件
+openclaw plugins install @openclaw/codex
+
+# 2) 用 OpenAI 账号登录（OAuth）
+openclaw models auth login --provider openai
+```
+
+**启用插件并指定 OpenAI 模型**（`~/.openclaw/openclaw.json5`）：
+
+```json5
+{
+  plugins: {
+    allow: ["codex"],
+    entries: { codex: { enabled: true } },
+  },
+  agents: {
+    defaults: { model: "openai/gpt-6-astra" },  // 以你账号实际可用模型为准
+  },
+}
+```
+
+> 若配置用了 `plugins.allow` 白名单，务必把 `codex` 加进去。
+> 改完配置后，已有会话需 `/new` 或 `/reset` 才生效。
+
+**验证**：
+
+```text
+/status      → 应显示 Runtime: OpenAI Codex
+/codex status
+/codex models
+/codex binding
+```
+
+命令行侧核对托管 app-server：
+
+```bash
+openclaw doctor --lint --only codex/managed-app-server --json
+```
+
+**从手机 / 公司浏览器指挥**（在 Telegram 或 Control UI 聊天里发）：
+
+| 想做的事 | 命令 |
+|---|---|
+| 把当前对话绑到某个 Codex 线程 | `/codex bind [thread-id] [--cwd 路径] [--model 模型]` |
+| 恢复已有线程 | `/codex resume <thread-id>` |
+| 列出线程 | `/codex threads [过滤]` |
+| 换模型 / 快模式 / 权限 | `/codex model <模型>`、`/codex fast`、`/codex permissions [default\|yolo\|status]` |
+| 停止 / 中途纠偏 | `/codex stop`、`/codex steer <文字>` |
+| 解绑 | `/codex detach`（别名 `/codex unbind`） |
+
+> `/codex` 子命令随版本变化，空发 `/codex` 看当前帮助为准。
+
+### A.3 路线乙：Codex CLI + tmux + ttyd
+
+```bash
+# 1) 安装 Codex CLI（以 OpenAI 官方安装方式为准，npm 示例）
+npm i -g @openai/codex
+codex --version
+
+# 2) 登录
+codex login
+
+# 3) 常驻 tmux 会话（掉线不丢）
+tmux new -As codex
+
+# 4) 在 tmux 里跑
+codex
+```
+
+公司浏览器开 `https://shell.域名/` → 自动进 ttyd → `tmux attach -t codex` → 就是完整的 Codex TUI。
+
+> 也可让 ttyd 启动即 attach：`ttyd -i 127.0.0.1 -p 7681 -W tmux new -As codex`
+
+### A.4 衔接与注意
+
+1. **鉴权分离**：Codex 走 OpenAI 账号（OAuth）或 API key，与 OpenClaw 的 gateway 鉴权是两回事。
+2. **managed app-server**：OpenClaw 默认随插件管 `@openai/codex 0.160.0`；若你另装 Codex 桌面/CLI 版本，需 ≥ `0.149.0`（低版本会告警）。
+3. **安全**：`yolo`（自动执行）模式慎用，默认用 `default` 权限，重要操作走审批。
+4. **共存**：路线甲适合异步派活，路线乙适合盯屏调试；与 code-server（你自己写）共享同一份代码。
+5. **需实测确认**：`openclaw plugins install @openclaw/codex` 与你装的 OpenClaw 版本是否兼容；`/codex` 具体子命令以版本输出为准。
+
+---
+
+> 本 runbook 覆盖两条分支、加固、常驻、验证、排障、回滚与安全底线。先落分支 A，跑通后再按需叠加分支 B。Codex 集成见附录 A。
