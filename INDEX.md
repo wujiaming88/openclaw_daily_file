@@ -8,6 +8,7 @@
 
 | 文件 | 目录 | 产出人 | 说明 |
 |------|------|--------|------|
+| [2026-10-19-wuhan-guanggu-weekly](news/2026-10-19-wuhan-guanggu-weekly.md) | news | 黄山×3+小帅 | 冻结报道窗口：2026-10-12 00:00 至 2026-10-18 24:00（Asia/Shanghai，完整自然周）；窗口外材料一律标注「（背景，非本周）」 一、本周 TOP 候选（5 条） TOP 1｜湖北大数据集团按「人/月」单价采购智能体工作台，本地两家供应商进入前三 TOP 2｜武汉政策「六件套」进入执行周，光谷算力补贴同日开报 |
 | [全球 AI Agent 研究周报 · 第 20 期（2026-10-12 ~ 2026-10-18）](research/2026-10-19-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 证据口径: 逐主张按 industry-research-evidence 分级；数据标 URL 与日期；供应商自报标注「未独立核实」；窗口外材料标「背景，非本周」；未取得写「本次未取得」 3. **生态出清与执行位置迁移。** 本周 Microsoft AutoGen 在 README 正式声明已归档、不再维护（指向 microsoft/agent-framework）；Roo Code 仓库早前归档、Aider 与 MetaGPT、SuperAGI 长期停更。与此同时，Cline 上线托管云会话、Cursor 云环境支持最多 300 个仓库、Cognition 推出 Devin Oncall（生产事故响应）、Hermes 把开源框架做成带引导式首启与签名安装包的桌面产品——Agent 生命周期正与编辑器解耦，本地 IDE 退化为交互前端。 TOP5 候选（按工程影响力 × 采用信号 × 生态位置 × 可靠性突破 × 新… |
 
 ---
