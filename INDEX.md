@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-10-19
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 研究周报 · 第 20 期（2026-10-12 ~ 2026-10-18）](research/2026-10-19-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 证据口径: 逐主张按 industry-research-evidence 分级；数据标 URL 与日期；供应商自报标注「未独立核实」；窗口外材料标「背景，非本周」；未取得写「本次未取得」 3. **生态出清与执行位置迁移。** 本周 Microsoft AutoGen 在 README 正式声明已归档、不再维护（指向 microsoft/agent-framework）；Roo Code 仓库早前归档、Aider 与 MetaGPT、SuperAGI 长期停更。与此同时，Cline 上线托管云会话、Cursor 云环境支持最多 300 个仓库、Cognition 推出 Devin Oncall（生产事故响应）、Hermes 把开源框架做成带引导式首启与签名安装包的桌面产品——Agent 生命周期正与编辑器解耦，本地 IDE 退化为交互前端。 TOP5 候选（按工程影响力 × 采用信号 × 生态位置 × 可靠性突破 × 新… |
+
+---
 ## 2026-10-17
 
 | 文件 | 目录 | 产出人 | 说明 |
