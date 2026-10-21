@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-10-22
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 基础设施研究周报（2026-10-22 / 第 18 期）研究母稿](research/2026-10-22-global-ai-agent-infra-weekly.md) | research | 黄山×4+小帅 | 本周模块结论 | 对象 | 本周状态 | 证据源 | 是否深写 | | Databricks Mosaic AI / Agent Bricks | 本周无重大公开动态（未取得窗口内官方条目） | databricks.com 产品页（无日期） | 否 | 本周动态：10-21 发布 `@truefoundry/trueforge@0.180.0-rc.1`（16:50 +0800）。四层变更：① 保留 Daytona 自定义环境 buildInfo 的 supervisord `ENTRYPOINT`（否则默认 `sleep infinity`，NATS bridge 起不来），`requestTimeoutMs` 设 60s，每次 exec 施加“命令超时 + 5s”HTTP deadline；② 创建/替换 inline session 与运行 turn 时允许 `x-tfg-skills`/`x-tfg-mcp`/`… |
+
+---
 ## 2026-10-21
 
 | 文件 | 目录 | 产出人 | 说明 |
