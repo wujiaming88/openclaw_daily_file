@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-10-26
+
+| 文件 | 目录 | 产出人 | 说明 |
+|------|------|--------|------|
+| [全球 AI Agent 研究周报 · 第 21 期 研究母稿（2026-10-19 ～ 2026-10-25）](research/2026-10-26-global-ai-agent-weekly.md) | research | 黄山×4+小帅 | 准出依据：industry-research-evidence（逐主张分级 A/B/C/D）；事实、数据、来源与矛盾处置见各组「关键数据」「原文链接」「覆盖与取证审计」节。 二、TOP5 候选（按工程影响力 × 采用信号 × 生态位置 × 可靠性突破 × 新颖度） 候选（未入 TOP5 但具生态含义）：OpenCode v2.1.4 的 `metadata.keepID` 引用式压缩（上下文工程可复用范式）；AutoGen 归档 → Microsoft Agent Framework；Ivo×micro1 ContractBench（7 个前沿模型全部 <60%，瓶颈在交付完整性与单件成本）；AfterDeleteBench / Post-Audit Mirage（记忆删除与离线审计的原理性结论）。 产品主线一：通用 Agent 的默认发起权反转到 Agent 一侧。** Claude Duet（10-21）主动推送简报并… |
+
+---
 ## 2026-10-23
 
 | 文件 | 目录 | 产出人 | 说明 |
