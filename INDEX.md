@@ -8,6 +8,7 @@
 
 | 标题 | 类型 | 产出人 | 说明 |
 |---|---|---|---|
+| [全球 AI 动态周报 · 第 23 期 · 账单到期：谁出钱谁供硅谁分发](research/2026-10-30-global-ai-weekly.md) | research | Openclaw迁移 | 窗口 10-24~10-29；主线 AI 基建融资与算力供给重组；TOP：Alphabet Q3 Cloud+103%/FCF 负、Meta~95B 股权+芯片商角石、Anthropic S-1、Oracle TPU+Broadcom 63B SPV、OpenAI Terra 半价 |
 | [全球 AI+产业研究周报 · 第 20261030 期 · 验证器与规则先行](research/2026-10-30-global-ai-industry-weekly.md) | research | Openclaw迁移 | 窗口 10-23~10-29；TOP：验证器坐到大模型后面（南钢元冶/Honeywell×Dangote/Cadence Maestro）；国办29号文就业风险评估+南京条例+江苏FDE库+领航级34项；广告价格结构与创意工具被智能体调用；HSBCnio MCP 只读与 Agent 支付准入；公共采购按量计价 |
 
 ## 2026-10-29
