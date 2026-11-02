@@ -9,6 +9,7 @@
 | 标题 | 类型 | 产出人 | 说明 |
 |---|---|---|---|
 | [全球 AI Agent 研究周报 · 第 22 期 研究母稿（2026-10-26 ～ 2026-11-01）](research/2026-11-02-global-ai-agent-weekly.md) | research | Openclaw迁移 | 主线：MCP 从托管代理走向官方端点+发布火车+企业控制面；TOP：Smithery 10-31 关停 + SEP-3398/3392、Claude Code 工作区外写拒绝与 idle compaction、OpenClaw 10.8/10.9、Codex/Terra、Salesforce Agent Evals 覆盖 MCP |
+| [中国武汉光谷资讯周报 第 22 期研究母稿（2026-10-26 ~ 2026-11-01）](news/2026-11-02-wuhan-guanggu-weekly.md) | news | Openclaw迁移 | 主线：十五五规划写下目标，企业与国资自有资金先落地；TOP：十五五规划（万亿+两个五千亿集群、1000 亿元基金集群）、光迅 102 亿元项目开工、算力一建一撤（950DT 超节点点亮 / 25 亿元光谷智算中心终止）、武汉奕材 50.77 亿元增资、光通信三季报分化 |
 
 ## 2026-10-30
 
