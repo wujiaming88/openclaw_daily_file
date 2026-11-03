@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-11-04
+
+| 标题 | 类型 | 产出人 | 说明 |
+|---|---|---|---|
+| [全球 AI 资本动向周报 · 第 11 期 · 主权资本重写估值分母](research/2026-11-04-global-ai-capital-startup-weekly.md) | research | Openclaw迁移 | 主线：主权资本给量产推理硅与主权模型写估值分母；TOP：FuriosaAI $620M@$2.9B、Anthropic S-1/A Q3/$895.4B 承诺、Upwind $400M@$3.8B、微纳超10亿+墨芯近10亿、Traversal $120M@$1B |
+
 ## 2026-11-03
 
 | 标题 | 类型 | 产出人 | 说明 |
