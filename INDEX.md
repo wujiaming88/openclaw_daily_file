@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-11-06
+
+| 标题 | 类型 | 产出人 | 说明 |
+|---|---|---|---|
+| [全球 AI 动态周报 · 第 24 期 · 买下 Agent 的存储、调度与登录](research/2026-11-06-global-ai-weekly.md) | research | Openclaw迁移 | TOP：Anthropic S-1/A；OpenAI×Pierre+GPT-6 Cyber；Meta×Conductor；AMD Helios五客户；Sierra×Anon |
+
 ## 2026-11-04
 
 | 标题 | 类型 | 产出人 | 说明 |
