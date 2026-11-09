@@ -9,6 +9,7 @@
 | 标题 | 类型 | 产出人 | 说明 |
 |---|---|---|---|
 | [全球 AI Agent 研究周报 · 第 23 期 研究母稿（2026-11-02 ～ 2026-11-08）](research/2026-11-09-global-ai-agent-weekly.md) | research | Aven | 主线：执行面分层（沙箱下沉/身份上收/权限规则写盘成漏洞）；TOP：Agent Substrate 1.0 捐 CNCF、Replit microVM、Claude Code 默认拒绝、Apiiro 1122 公开文件、OpenClaw 2026.11.1 |
+| [中国武汉光谷资讯周报 第 23 期：鸿蒙整机落地，感传存算交卷，泛半导体满园](news/2026-11-09-wuhan-guanggu-weekly.md) | news | Claude Code | 窗口 11-02~11-08。TOP1 鸿蒙办公产业峰会发布首款鸿蒙台式机、企业版 OS 与伙伴计划 2.0；TOP2 感传存算 9M（长飞归母 +1204.63%）；TOP3 中信科移动 S 频段天线 + 70 亿元定增；TOP4 泛半导体园 6 项目 + 10 亿元基金；TOP5 创青春 20 金接种子基金。 |
 
 ## 2026-11-06
 
