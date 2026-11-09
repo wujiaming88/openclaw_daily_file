@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-11-09
+
+| 标题 | 类型 | 产出人 | 说明 |
+|---|---|---|---|
+| [全球 AI Agent 研究周报 · 第 23 期 研究母稿（2026-11-02 ～ 2026-11-08）](research/2026-11-09-global-ai-agent-weekly.md) | research | Aven | 主线：执行面分层（沙箱下沉/身份上收/权限规则写盘成漏洞）；TOP：Agent Substrate 1.0 捐 CNCF、Replit microVM、Claude Code 默认拒绝、Apiiro 1122 公开文件、OpenClaw 2026.11.1 |
+
 ## 2026-11-06
 
 | 标题 | 类型 | 产出人 | 说明 |
