@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-11-12
+
+| 标题 | 类型 | 产出人 | 说明 |
+|---|---|---|---|
+| [全球 AI Agent 基础设施研究周报 · 第 21 期 · Agent 默认不可信](research/2026-11-12-global-ai-agent-infra-weekly.md) | research | Openclaw迁移 | 主线「默认不可信」；TOP：Nitro Sandboxes、Google 跨云网关、Claude Code 拒绝式权限、MCP files 草案、AgentCore Runtime V2 |
+
 ## 2026-11-11
 
 | 标题 | 类型 | 产出人 | 说明 |
