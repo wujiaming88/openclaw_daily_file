@@ -9,6 +9,7 @@
 | 标题 | 类型 | 产出人 | 说明 |
 |---|---|---|---|
 | [全球 AI+产业研究周报 · 第 20261113 期 · 开门不放权](research/2026-11-13-global-ai-industry-weekly.md) | research | Openclaw迁移 | 窗口 11-06~11-12；主线：入口开放、执行权留在记录系统、计量下沉到动作；TOP：Anthropic 制造插件读写分离（×Infor）、Mastercard 首笔 Agent 旅行交易 vs United 封禁 Agent、ServiceNow 非席位收入过半按动作计费、Ogilvy×CAA ECHO 肖像授权、Google K-12 默认关 AI 引发学区之争 |
+| [全球 AI 动态周报 · 第 25 期 · 英伟达四天换帅，Anthropic 定价上市](research/2026-11-13-global-ai-weekly.md) | research | Openclaw迁移 | TOP：英伟达四天换帅（Kress 临时 CEO、首位董事长）；Anthropic IPO $70–78/隐含 $1.404T/供应商 $26B N 类股；Google Carbon+Hydrogen；OpenAI $1.25T/Q3 破 $10B；AMD MI455X 对标 Vera Rubin |
 
 ## 2026-11-12
 
