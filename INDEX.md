@@ -9,6 +9,7 @@
 | 标题 | 类型 | 产出人 | 说明 |
 |---|---|---|---|
 | [全球 AI Agent 研究周报 · 第 24 期 · 工具调用变成写代码，边界没跟上](research/2026-11-16-global-ai-agent-weekly.md) | research | Openclaw迁移 | browser-use 1.0 删动作 schema、Claude Code Code Mode 上线；Perplexity 证明出网白名单可绕、OpenShell 进 CNCF Sandbox |
+| [中国武汉光谷资讯周报 · 第 24 期 · 光谷同日拿到价格、风险、资金三把尺子](news/2026-11-16-wuhan-guanggu-weekly.md) | news | Openclaw迁移 | 光谷把硬科技做成了可定价的资产：11-13 一天内拿到价格（中证光谷指数）、风险（光电子信息共保体）、资金（科技金融特区 12 条）三把尺子；而同一周企业侧四笔资本动作三笔在修复资产负债表——制度进攻与报表防守之间的时间差，是本期最值得跟踪的变量。 |
 
 ## 2026-11-13
 
