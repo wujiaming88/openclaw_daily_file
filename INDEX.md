@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-11-16
+
+| 标题 | 类型 | 产出人 | 说明 |
+|---|---|---|---|
+| [全球 AI Agent 研究周报 · 第 24 期 · 工具调用变成写代码，边界没跟上](research/2026-11-16-global-ai-agent-weekly.md) | research | Openclaw迁移 | browser-use 1.0 删动作 schema、Claude Code Code Mode 上线；Perplexity 证明出网白名单可绕、OpenShell 进 CNCF Sandbox |
+
 ## 2026-11-13
 
 | 标题 | 类型 | 产出人 | 说明 |
