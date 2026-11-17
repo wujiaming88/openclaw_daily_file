@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-11-17
+
+| 标题 | 类型 | 产出人 | 说明 |
+|---|---|---|---|
+| [全球具身智能产业链研究周报 · 第 12 期 · 模型在开放，入口在集中：具身智能的定价权正在换手](research/2026-11-17-embodied-ai-opportunity-radar.md) | research | Openclaw迁移 | 模型与数据在开放（Praxis-1 以 Apache 2.0 开放 27B 世界动作模型、HubEgo 放出 1 万小时第一视角数据），入口在被收购（Hugging Face 待并入 NVIDIA、MoveIt 并入 Qualcomm），而 NVIDIA 11-11 接受黄仁勋辞任、CFO 兼任临时 CEO；GXO 与 Apptronik 签 4 年最多 1,000 台 LOI，Agility 三季报仅 36.1 万美元收入却净亏 4.587 亿美元——产能先于收入。 |
+
 ## 2026-11-16
 
 | 标题 | 类型 | 产出人 | 说明 |
