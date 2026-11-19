@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-11-19
+
+| 标题 | 类型 | 产出人 | 说明 |
+|---|---|---|---|
+| [全球 AI Agent 基础设施研究周报 · 第 22 期 · Agent 长跑，进度要自己存](research/2026-11-19-global-ai-agent-infra-weekly.md) | research | Openclaw迁移 | 平台开始卖档期、检查点与档案：Google 五折排队（24h/7 天状态）、AWS 会话记忆十年 + Lambda 从 checkpoint 续跑、阿里沙箱只存磁盘不存进程；另含 Claude Code Code Mode、OpenClaw 11.5 会话所有权上收、AgentCore 基线+4x 突发计价。 |
+
 ## 2026-11-18
 
 | 标题 | 类型 | 产出人 | 说明 |
