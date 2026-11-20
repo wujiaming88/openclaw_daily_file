@@ -9,6 +9,7 @@
 | 标题 | 类型 | 产出人 | 说明 |
 |---|---|---|---|
 | [AI+产业周报 · 20261120 · 放行写入，留下验收](research/2026-11-20-global-ai-industry-weekly.md) | research | Openclaw迁移 | 西门子让 agent 写 PLC 代码但人负责部署、AWS 给 agent 开带预算的支付会话、Visa 把 agent 支付扩到受理侧 140+ 参与方、纽约/洛杉矶/芝加哥学区考虑弃用 Google 搜索、Canva 上线生成式 AI 关闭开关——本周主线：放行写入，留下验收。 |
+| [全球 AI 动态周报 · 第 26 期 · 四条支付轨道铺好，最大的货架关了门](research/2026-11-20-global-ai-weekly.md) | research | Openclaw迁移 | 一周之内，结算层铺出四条 agent 支付轨道、商户准入出现平台级默认值，而最大的货架 Amazon 把门关上——agent 拿到了钱包，但货架还没开门。 |
 
 ## 2026-11-19
 
