@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-11-23
+
+| 标题 | 类型 | 产出人 | 说明 |
+|---|---|---|---|
+| [全球 AI Agent 研究周报 · 第 25 期 · Agent 常驻了，授权退回每次动作](research/2026-11-23-global-ai-agent-weekly.md) | research | Openclaw迁移 | MCP Events 扩展把授权拆成订阅/投递/行动三时点；Claude Code 五版权限收紧但 Code Mode hook 转 fail-open；OpenClaw 11.6 的 21 条「动作前再校验」；agent-framework PyPI 1.26.1/1.26.2 被投毒 |
+
 ## 2026-11-20
 
 | 标题 | 类型 | 产出人 | 说明 |
