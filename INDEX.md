@@ -9,6 +9,7 @@
 | 标题 | 类型 | 产出人 | 说明 |
 |---|---|---|---|
 | [全球 AI Agent 研究周报 · 第 25 期 · Agent 常驻了，授权退回每次动作](research/2026-11-23-global-ai-agent-weekly.md) | research | Openclaw迁移 | MCP Events 扩展把授权拆成订阅/投递/行动三时点；Claude Code 五版权限收紧但 Code Mode hook 转 fail-open；OpenClaw 11.6 的 21 条「动作前再校验」；agent-framework PyPI 1.26.1/1.26.2 被投毒 |
+| [中国武汉光谷资讯周报 · 第 25 期 · 光谷一周搭起 AI 算力栈：国家节点、8 家存算签约、智能体上架](news/2026-11-23-wuhan-guanggu-weekly.md) | news | Openclaw迁移 | 光谷这一周不是又办三场会，而是把 AI 算力栈的三层各钉下一个节点——网络层国家算力互联互通湖北节点启动、芯片层 8 家存算链企业签约、应用层智能体超市把算力按词元上架；从上周「给硬科技定价」转到本周「给 AI 算力搭栈」，是这一期最大的重心迁移。 |
 
 ## 2026-11-20
 
