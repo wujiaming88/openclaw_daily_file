@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-11-26
+
+| 标题 | 类型 | 产出人 | 说明 |
+|---|---|---|---|
+| [全球 AI Agent 基础设施研究周报 · 第 23 期 · Agent 出网，先过企业的门](research/2026-11-26-global-ai-agent-infra-weekly.md) | research | Openclaw迁移 | Agent 治理执行点从 agent 内移到企业既有网络与身份部件：AWS 用 WAF 拦 MCP/A2A 并靠 API Portal 发现 shadow 端点，Foundry 把出口策略变成 agent 发版门槛、MCP 改走客户 APIM，Google 用 Agent Registry 身份授权且默认拒绝出站；另记 AWS TIP 跨组织丢弃上下文、IETF 四条委托撤销草案、OpenClaw/Claude Code/OpenAI SDK 的长跑恢复与四处默认值变更。 |
+
 ## 2026-11-25
 
 | 标题 | 类型 | 产出人 | 说明 |
