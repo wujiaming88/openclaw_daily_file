@@ -9,6 +9,7 @@
 | 标题 | 类型 | 产出人 | 说明 |
 |---|---|---|---|
 | [AI+产业周报 · 20261127 · 按工位落地，按单元结算](research/2026-11-27-global-ai-industry-weekly.md) | research | Openclaw迁移 | 本周 AI 开始按「单元」落地：SPS 2026 西门子/施耐德/ABB 把 AI 装进单工位并按许可与订阅卖；奔驰返修工位加一层 add-on 快 20–30%、三一焊接做到一人两机；美国大行把 agent 误操作写成客户自担、沃尔玛用一次性令牌放行购物助手；Canva 把设计从席位改成按 API 调用计费。 |
+| [全球 AI 动态周报 · 第 27 期 · 供应商成了股东，资本循环开始计息](research/2026-11-27-global-ai-weekly.md) | research | Openclaw迁移 | Anthropic $119.5B IPO 中 $26B 由七家供应商认购、四日破发；黄仁勋回归但标普列负面观察；CoreWeave 债约 18%、CDS 1314bp；华为被定罪、智谱回撤 41%；小豆/千问Go/Muse 入口战。 |
 
 ## 2026-11-26
 
